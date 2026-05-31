@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>หมู่บ้านเพอร์เฟค พาร์ค ชัยพฤกษ์ — บันทึกสถานการณ์ส่วนกลาง</title>
+<meta name="description" content="เว็บไซต์รวบรวมข้อมูลและความคืบหน้าการรวมตัวของลูกบ้านโครงการเพอร์เฟค พาร์ค ชัยพฤกษ์">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;700;900&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   ระบบสีและตัวแปร
+   ============================================================ */
+:root {
+  --paper:       #F4EEE3;
+  --paper-alt:   #EAE0CC;
+  --paper-deep:  #DDD0B5;
+  --ink:         #1A1410;
+  --ink-soft:    #5C4F42;
+  --ink-faint:   #8A7A66;
+  --accent:      #B8732A;
+  --accent-dark: #8A5419;
+  --signed:      #3F6F4F;
+  --signed-bg:   #D4E2D5;
+  --alert:       #9C2A1F;
+  --alert-soft:  #E8D2CD;
+  --line:        #C9B894;
+  --line-soft:   #DCCEB4;
+  --highlight:   #F2DDB6;
+  --excluded:    #C9BCA5;
+
+  --font-display: 'Noto Serif Thai', Georgia, serif;
+  --font-body:    'IBM Plex Sans Thai', system-ui, sans-serif;
+  --font-mono:    'IBM Plex Mono', 'Consolas', monospace;
+
+  --max-width: 1100px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  font-weight: 400; font-size: 16px; line-height: 1.7;
+  color: var(--ink); background: var(--paper);
+  background-image:
+    radial-gradient(circle at 15% 10%, rgba(184,115,42,0.04) 0%, transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(63,111,79,0.04) 0%, transparent 40%);
+  min-height: 100vh; overflow-x: hidden;
+}
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; opacity: 0.4;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.3 0 0 0 0 0.2 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  z-index: 1;
+}
+main, header, footer { position: relative; z-index: 2; }
+
+/* Loading overlay */
+.loading-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: var(--paper);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 16px;
+  font-family: var(--font-display);
+  transition: opacity 0.4s, visibility 0.4s;
+}
+.loading-overlay.hidden { opacity: 0; visibility: hidden; }
+.loading-spinner {
+  width: 32px; height: 32px;
+  border: 2px solid var(--line);
+  border-top-color: var(--accent-dark);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { color: var(--ink-soft); font-size: 14px; letter-spacing: 0.05em; }
+
+/* ============================================================
+   MASTHEAD
+   ============================================================ */
+.masthead {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(244, 238, 227, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+  padding: 12px 20px;
+}
+.masthead-inner {
+  max-width: var(--max-width); margin: 0 auto;
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+}
+.masthead-title {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 16px; letter-spacing: 0.01em; color: var(--ink);
+}
+.masthead-title small {
+  display: block; font-family: var(--font-body); font-weight: 400;
+  font-size: 11px; color: var(--ink-faint);
+  letter-spacing: 0.04em; text-transform: uppercase; margin-top: 2px;
+}
+.masthead-update {
+  font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft);
+  display: flex; align-items: center; gap: 8px;
+}
+.dot-live {
+  width: 7px; height: 7px; background: var(--signed);
+  border-radius: 50%; animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero {
+  max-width: var(--max-width); margin: 0 auto;
+  padding: 60px 20px 40px; border-bottom: 1px solid var(--line);
+}
+.hero-eyebrow {
+  font-family: var(--font-mono); font-size: 12px;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--accent-dark); margin-bottom: 24px;
+  display: flex; align-items: center; gap: 12px;
+}
+.hero-eyebrow::before {
+  content: ''; width: 32px; height: 1px; background: var(--accent-dark);
+}
+.hero-title {
+  font-family: var(--font-display); font-weight: 900;
+  font-size: clamp(34px, 6vw, 64px); line-height: 1.1;
+  letter-spacing: -0.02em; color: var(--ink); margin-bottom: 24px;
+}
+.hero-title em { font-style: italic; color: var(--accent-dark); font-weight: 700; }
+.hero-lead {
+  font-family: var(--font-display); font-weight: 500;
+  font-size: clamp(18px, 2.2vw, 22px); line-height: 1.5;
+  color: var(--ink-soft); max-width: 700px; margin-bottom: 36px;
+}
+
+/* Status box — has 2 modes */
+.status-box {
+  display: inline-flex; align-items: flex-start; gap: 20px;
+  padding: 20px 28px; background: var(--paper-alt);
+  border: 1px solid var(--line); max-width: 100%;
+}
+.status-box.preparing { border-left: 4px solid var(--accent); }
+.status-box.countdown  { border-left: 4px solid var(--alert); }
+.status-box.expired    { border-left: 4px solid var(--ink); background: var(--alert-soft); }
+.status-label {
+  font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--ink-soft); margin-bottom: 4px;
+}
+.status-value {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 28px; line-height: 1.15;
+}
+.status-box.preparing .status-value { color: var(--accent-dark); }
+.status-box.countdown  .status-value { color: var(--alert); }
+.status-box.expired    .status-value { color: var(--ink); }
+.status-sub {
+  font-family: var(--font-body); font-weight: 400;
+  font-size: 13px; color: var(--ink-soft);
+  display: block; margin-top: 6px; line-height: 1.55;
+}
+
+/* ============================================================
+   STATS
+   ============================================================ */
+.stats {
+  max-width: var(--max-width); margin: 0 auto; padding: 48px 20px;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 1px; background: var(--line); border: 1px solid var(--line);
+}
+.stat { background: var(--paper); padding: 28px 24px; position: relative; }
+.stat-label {
+  font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-faint); margin-bottom: 12px;
+}
+.stat-value {
+  font-family: var(--font-display); font-weight: 900;
+  font-size: clamp(32px, 4.5vw, 48px); line-height: 1;
+  color: var(--ink); letter-spacing: -0.02em; margin-bottom: 4px;
+}
+.stat-value.signed { color: var(--signed); }
+.stat-value.alert  { color: var(--alert); }
+.stat-value.accent { color: var(--accent-dark); }
+.stat-unit { font-family: var(--font-body); font-size: 14px; color: var(--ink-soft); }
+.stat-bar {
+  margin-top: 12px; height: 4px; background: var(--paper-deep);
+  position: relative; overflow: hidden;
+}
+.stat-bar-fill {
+  position: absolute; left: 0; top: 0; bottom: 0; background: var(--signed);
+  transition: width 1.2s cubic-bezier(.4,0,.2,1);
+}
+
+/* ============================================================
+   SECTION FRAMEWORK
+   ============================================================ */
+section.content {
+  max-width: var(--max-width); margin: 0 auto;
+  padding: 64px 20px; border-top: 1px solid var(--line-soft);
+}
+.section-eyebrow {
+  font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 0.25em; text-transform: uppercase;
+  color: var(--accent-dark); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.section-eyebrow::before {
+  content: '§'; font-family: var(--font-display);
+  font-size: 18px; font-weight: 700;
+}
+.section-title {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(28px, 4vw, 38px); line-height: 1.2;
+  letter-spacing: -0.01em; color: var(--ink);
+  margin-bottom: 32px; max-width: 700px;
+}
+
+/* ============================================================
+   SUMMARY
+   ============================================================ */
+.summary-grid {
+  display: grid; grid-template-columns: 1fr 2fr;
+  gap: 48px; align-items: start;
+}
+.summary-body { font-size: 17px; line-height: 1.8; color: var(--ink); }
+.summary-body p { margin-bottom: 20px; }
+.summary-body p:first-child::first-letter {
+  font-family: var(--font-display); font-weight: 900;
+  font-size: 64px; line-height: 0.85;
+  float: left; margin: 4px 8px 0 0; color: var(--accent-dark);
+}
+.summary-body strong { color: var(--ink); font-weight: 700; }
+.summary-aside {
+  padding: 24px; background: var(--paper-alt);
+  border-left: 3px solid var(--accent);
+  font-size: 14px; line-height: 1.7; color: var(--ink-soft);
+}
+.summary-aside h4 {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 15px; color: var(--ink); margin-bottom: 12px;
+}
+
+/* ============================================================
+   IMPACT
+   ============================================================ */
+.impact-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.impact-item {
+  padding: 24px 20px; background: var(--paper-alt);
+  border: 1px solid var(--line-soft);
+  transition: transform 0.25s, box-shadow 0.25s;
+}
+.impact-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(26,20,16,0.08);
+}
+.impact-icon {
+  width: 40px; height: 40px;
+  border: 1.5px solid var(--ink); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 18px; color: var(--ink); margin-bottom: 14px;
+}
+.impact-title {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 17px; color: var(--ink); margin-bottom: 8px;
+}
+.impact-text { font-size: 13.5px; line-height: 1.6; color: var(--ink-soft); }
+
+/* ============================================================
+   TIMELINE
+   ============================================================ */
+.timeline { position: relative; padding-left: 28px; }
+.timeline::before {
+  content: ''; position: absolute;
+  left: 7px; top: 8px; bottom: 8px;
+  width: 1px; background: var(--line);
+}
+.timeline-item { position: relative; padding-bottom: 36px; }
+.timeline-item:last-child { padding-bottom: 0; }
+.timeline-item::before {
+  content: ''; position: absolute;
+  left: -28px; top: 8px; width: 15px; height: 15px;
+  background: var(--paper); border: 2px solid var(--accent-dark);
+  border-radius: 50%;
+}
+.timeline-item.major::before {
+  background: var(--accent-dark);
+  box-shadow: 0 0 0 4px var(--paper), 0 0 0 5px var(--accent-dark);
+}
+.timeline-item.alert::before { border-color: var(--alert); }
+.timeline-item.alert.major::before { background: var(--alert); box-shadow: 0 0 0 4px var(--paper), 0 0 0 5px var(--alert); }
+.timeline-item.signed::before { border-color: var(--signed); }
+.timeline-item.signed.major::before { background: var(--signed); box-shadow: 0 0 0 4px var(--paper), 0 0 0 5px var(--signed); }
+.timeline-date {
+  font-family: var(--font-mono); font-size: 12px;
+  letter-spacing: 0.08em; color: var(--ink-faint);
+  text-transform: uppercase; margin-bottom: 6px;
+}
+.timeline-title {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 19px; color: var(--ink); line-height: 1.35; margin-bottom: 8px;
+}
+.timeline-body { font-size: 15px; line-height: 1.7; color: var(--ink-soft); }
+
+/* ============================================================
+   SITE PLAN
+   ============================================================ */
+.siteplan-wrap {
+  background: var(--paper-alt); border: 1px solid var(--line);
+  padding: 24px; margin-bottom: 24px;
+}
+.siteplan-meta {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px; gap: 16px; flex-wrap: wrap;
+}
+.siteplan-count {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 22px; color: var(--ink);
+}
+.siteplan-count strong { color: var(--signed); font-size: 32px; }
+.siteplan-count .of {
+  color: var(--ink-soft); font-weight: 500; font-size: 18px;
+  display: block; margin-top: 2px;
+}
+.siteplan-legend {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  font-size: 12px; font-family: var(--font-mono); color: var(--ink-soft);
+}
+.legend-swatch { display: inline-flex; align-items: center; gap: 6px; }
+.legend-swatch::before {
+  content: ''; width: 14px; height: 14px;
+  border: 1px solid var(--line);
+}
+.legend-swatch.signed::before { background: var(--signed); border-color: var(--signed); }
+.legend-swatch.unsigned::before { background: var(--paper); }
+.legend-swatch.special::before { background: var(--paper-deep); border-color: var(--ink-faint); }
+.legend-swatch.excluded::before {
+  background: var(--excluded);
+  border: 1px dashed var(--ink-faint);
+}
+
+.progress-track {
+  height: 6px; background: var(--paper-deep);
+  position: relative; margin-bottom: 24px; overflow: hidden;
+}
+.progress-fill {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  background: var(--signed);
+  transition: width 1.4s cubic-bezier(.4,0,.2,1);
+}
+
+.siteplan-svg-wrap {
+  overflow-x: auto; background: var(--paper);
+  border: 1px solid var(--line-soft); padding: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+.siteplan-svg { display: block; min-width: 900px; width: 100%; height: auto; }
+.house-rect {
+  fill: var(--paper); stroke: var(--ink-faint); stroke-width: 0.8;
+  cursor: pointer; transition: fill 0.4s, stroke 0.2s, transform 0.15s;
+  transform-origin: center; transform-box: fill-box;
+}
+.house-rect:hover {
+  stroke: var(--ink); stroke-width: 1.5; transform: scale(1.15);
+}
+.house-rect.signed { fill: var(--signed); stroke: #2A5740; }
+.house-rect.special {
+  fill: var(--paper-deep); stroke: var(--ink-faint); cursor: default;
+}
+.house-rect.special:hover { transform: none; }
+.house-rect.excluded {
+  fill: var(--excluded); stroke: var(--ink-faint);
+  stroke-dasharray: 2,2; opacity: 0.7;
+}
+.house-rect.excluded:hover { transform: scale(1.08); opacity: 0.85; }
+
+.house-label {
+  font-family: var(--font-mono); font-size: 9px;
+  fill: var(--ink); pointer-events: none;
+  text-anchor: middle; dominant-baseline: central; font-weight: 500;
+}
+.soi-label {
+  font-family: var(--font-mono); font-size: 10px;
+  fill: var(--ink-faint); letter-spacing: 0.1em; text-anchor: middle;
+}
+.special-label {
+  font-family: var(--font-body); font-size: 9px;
+  fill: var(--ink); text-anchor: middle;
+  font-weight: 500; pointer-events: none;
+}
+
+.siteplan-help {
+  font-size: 13px; color: var(--ink-soft);
+  margin-top: 12px; font-style: italic;
+}
+
+.house-tooltip {
+  position: fixed; background: var(--ink); color: var(--paper);
+  padding: 8px 12px; font-size: 13px; font-family: var(--font-body);
+  pointer-events: none; opacity: 0;
+  transition: opacity 0.15s; z-index: 200; white-space: nowrap;
+}
+.house-tooltip.visible { opacity: 1; }
+.house-tooltip strong { font-family: var(--font-display); font-weight: 700; }
+.house-tooltip .reason {
+  display: block; font-size: 11px; color: rgba(244,238,227,0.7);
+  margin-top: 2px; font-style: italic;
+}
+
+/* ============================================================
+   DOCUMENTS
+   ============================================================ */
+.docs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.doc-card {
+  display: flex; gap: 18px; padding: 24px;
+  background: var(--paper-alt); border: 1px solid var(--line-soft);
+  text-decoration: none; color: inherit;
+  transition: transform 0.25s, border-color 0.2s, box-shadow 0.25s;
+  align-items: flex-start;
+}
+.doc-card:hover {
+  transform: translateY(-3px); border-color: var(--accent);
+  box-shadow: 0 10px 30px rgba(26,20,16,0.1);
+}
+.doc-icon {
+  flex-shrink: 0; width: 48px; height: 60px;
+  background: var(--paper); border: 1px solid var(--line);
+  position: relative; display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: 6px; font-family: var(--font-mono);
+  font-size: 9px; font-weight: 600;
+  color: var(--ink-soft); letter-spacing: 0.05em;
+}
+.doc-icon::before {
+  content: ''; position: absolute; top: 0; right: 0;
+  width: 12px; height: 12px; background: var(--paper-deep);
+  clip-path: polygon(0 0, 100% 100%, 0 100%);
+}
+.doc-info { flex: 1; min-width: 0; }
+.doc-title {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 17px; color: var(--ink); line-height: 1.35; margin-bottom: 6px;
+}
+.doc-meta {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--ink-faint); letter-spacing: 0.05em;
+  text-transform: uppercase; margin-bottom: 10px;
+}
+.doc-action {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 600; color: var(--accent-dark);
+}
+.doc-action::after { content: '↓'; font-family: var(--font-mono); }
+
+/* ============================================================
+   Q&A — accordion list
+   ============================================================ */
+.qa-categories {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.qa-cat-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.qa-cat-btn:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.qa-cat-btn.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+.qa-list {
+  display: flex; flex-direction: column;
+  border-top: 1px solid var(--line);
+}
+.qa-item {
+  border-bottom: 1px solid var(--line);
+}
+.qa-question {
+  width: 100%; text-align: left;
+  background: none; border: none;
+  padding: 22px 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.4;
+  color: var(--ink);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  transition: color 0.2s;
+}
+.qa-question:hover { color: var(--accent-dark); }
+.qa-q-text {
+  flex: 1;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.qa-q-mark {
+  flex-shrink: 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 22px;
+  color: var(--accent-dark);
+  line-height: 1.2;
+  font-style: italic;
+}
+.qa-toggle {
+  flex-shrink: 0;
+  width: 28px; height: 28px;
+  border: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 18px;
+  color: var(--ink-soft);
+  transition: all 0.3s cubic-bezier(.4,0,.2,1);
+  margin-top: 2px;
+}
+.qa-item.open .qa-toggle {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+  transform: rotate(180deg);
+}
+.qa-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(.4,0,.2,1);
+}
+.qa-item.open .qa-answer {
+  max-height: 1500px;
+}
+.qa-answer-inner {
+  padding: 0 0 28px 36px;
+  font-size: 15.5px;
+  line-height: 1.8;
+  color: var(--ink);
+  border-left: 2px solid var(--signed-bg);
+  margin-left: 8px;
+  padding-left: 26px;
+}
+.qa-answer-inner p {
+  margin-bottom: 14px;
+}
+.qa-answer-inner p:last-child { margin-bottom: 0; }
+.qa-answer-inner strong { font-weight: 600; }
+
+/* ============================================================
+   COMMENTS
+   ============================================================ */
+.comments-form {
+  background: var(--paper-alt); border: 1px solid var(--line);
+  padding: 20px; margin-bottom: 28px;
+}
+.comments-form-row {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; margin-bottom: 12px;
+}
+.comments-form input,
+.comments-form textarea {
+  width: 100%; padding: 12px 14px;
+  background: var(--paper); border: 1px solid var(--line);
+  font-family: var(--font-body); font-size: 15px;
+  color: var(--ink); outline: none; transition: border-color 0.2s;
+}
+.comments-form input:focus,
+.comments-form textarea:focus { border-color: var(--accent); }
+.comments-form textarea { resize: vertical; min-height: 80px; }
+.comments-submit {
+  margin-top: 12px; padding: 12px 24px;
+  background: var(--ink); color: var(--paper);
+  border: none; font-family: var(--font-body);
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: background 0.2s, transform 0.1s; letter-spacing: 0.02em;
+}
+.comments-submit:hover { background: var(--accent-dark); }
+.comments-submit:active { transform: scale(0.98); }
+.comments-submit:disabled {
+  background: var(--ink-faint); cursor: not-allowed; opacity: 0.6;
+}
+.comment-status {
+  margin-top: 10px; font-size: 13px; color: var(--ink-soft);
+  min-height: 18px;
+}
+.comment-status.success { color: var(--signed); }
+.comment-status.error { color: var(--alert); }
+
+.comment-list { display: flex; flex-direction: column; gap: 20px; }
+.comment { padding: 20px 0; border-bottom: 1px solid var(--line-soft); }
+.comment:last-child { border-bottom: none; }
+.comment-meta {
+  display: flex; align-items: baseline; gap: 12px;
+  margin-bottom: 8px; flex-wrap: wrap;
+}
+.comment-author {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 16px; color: var(--ink);
+}
+.comment-house {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--ink-faint); padding: 2px 6px;
+  background: var(--paper-alt); letter-spacing: 0.05em;
+}
+.comment-date {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--ink-faint); margin-left: auto;
+}
+.comment-body { font-size: 15px; line-height: 1.65; color: var(--ink); }
+.comment-empty {
+  text-align: center; padding: 40px 20px;
+  color: var(--ink-faint); font-style: italic;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer {
+  margin-top: 80px; padding: 48px 20px 32px;
+  background: var(--ink); color: var(--paper);
+}
+.footer-inner {
+  max-width: var(--max-width); margin: 0 auto;
+  display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px;
+}
+.footer h5 {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 14px; letter-spacing: 0.05em;
+  margin-bottom: 16px; color: var(--paper); text-transform: uppercase;
+}
+.footer p, .footer a {
+  font-size: 13.5px; line-height: 1.7;
+  color: rgba(244,238,227,0.7); text-decoration: none;
+}
+.footer a:hover { color: var(--paper); text-decoration: underline; }
+.footer-disclaimer {
+  margin-top: 32px; padding-top: 24px;
+  border-top: 1px solid rgba(244,238,227,0.15);
+  font-size: 11px; font-family: var(--font-mono);
+  color: rgba(244,238,227,0.5); letter-spacing: 0.05em;
+  max-width: var(--max-width); margin-left: auto; margin-right: auto;
+}
+
+/* ============================================================
+   ANIMATIONS & RESPONSIVE
+   ============================================================ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in { opacity: 0; animation: fadeUp 0.8s cubic-bezier(.2,.7,.3,1) forwards; }
+.fade-in.d1 { animation-delay: 0.1s; }
+.fade-in.d2 { animation-delay: 0.2s; }
+.fade-in.d3 { animation-delay: 0.3s; }
+.fade-in.d4 { animation-delay: 0.4s; }
+
+@keyframes housePopIn {
+  from { opacity: 0; transform: scale(0.5); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@media (max-width: 900px) {
+  .stats { grid-template-columns: 1fr 1fr; }
+  .summary-grid { grid-template-columns: 1fr; gap: 24px; }
+  .impact-grid { grid-template-columns: 1fr 1fr; }
+  .docs-grid { grid-template-columns: 1fr; }
+  .footer-inner { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .hero { padding: 40px 16px 32px; }
+  section.content { padding: 48px 16px; }
+  .stats { padding: 32px 16px; }
+  .status-box { flex-direction: column; padding: 16px 20px; }
+  .comments-form-row { grid-template-columns: 1fr; }
+  .impact-grid { grid-template-columns: 1fr; }
+  .masthead-title { font-size: 14px; }
+  .masthead-title small { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loading">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">กำลังโหลดข้อมูลจาก Google Sheets...</div>
+</div>
+
+<!-- MASTHEAD -->
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="masthead-title">
+      <span id="mhTitle">เพอร์เฟค พาร์ค ชัยพฤกษ์</span>
+      <small>บันทึกสถานการณ์ส่วนกลาง · ฉบับลูกบ้าน</small>
+    </div>
+    <div class="masthead-update">
+      <span class="dot-live"></span>
+      <span>อัปเดตล่าสุด <span id="lastUpdate">—</span></span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow fade-in">บันทึกสาธารณะของลูกบ้าน · พฤษภาคม ๒๕๖๙</div>
+  <h1 class="hero-title fade-in d1">
+    จ่ายค่าส่วนกลางครบ —<br>
+    แต่<em>บริการหายไปไหน?</em>
+  </h1>
+  <p class="hero-lead fade-in d2">
+    รวบรวมไทม์ไลน์ หลักฐาน และความคืบหน้าการรวมตัวของลูกบ้าน
+    เพอร์เฟค พาร์ค ชัยพฤกษ์ เพื่อขอให้บริษัทผู้พัฒนาชี้แจง
+    การบริหารเงินส่วนกลางและฟื้นฟูคุณภาพการบริการ
+  </p>
+  <div class="status-box fade-in d3" id="statusBox">
+    <!-- filled by JS based on letter_sent flag -->
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="stats">
+  <div class="stat fade-in">
+    <div class="stat-label">บ้านที่นับ</div>
+    <div class="stat-value"><span id="countableHouses">—</span></div>
+    <div class="stat-unit"><span id="excludedNote">หลังคาเรือน</span></div>
+  </div>
+  <div class="stat fade-in d1">
+    <div class="stat-label">ลูกบ้านที่เซ็นแล้ว</div>
+    <div class="stat-value signed"><span id="signedCount">0</span></div>
+    <div class="stat-unit"><span id="signedPercent">0</span>% ของบ้านที่นับ</div>
+    <div class="stat-bar"><div class="stat-bar-fill" id="signedBar" style="width:0"></div></div>
+  </div>
+  <div class="stat fade-in d2">
+    <div class="stat-label">งบส่วนกลางติดลบสะสม</div>
+    <div class="stat-value alert">−236K</div>
+    <div class="stat-unit">บาท · 4 เดือนแรกของปี</div>
+  </div>
+  <div class="stat fade-in d3">
+    <div class="stat-label">เงินเดือนค้างจ่าย</div>
+    <div class="stat-value accent">5</div>
+    <div class="stat-unit">เดือน · เจ้าหน้าที่สนง.</div>
+  </div>
+</section>
+
+<!-- SUMMARY -->
+<section class="content" id="summary">
+  <div class="section-eyebrow">สรุปสถานการณ์</div>
+  <h2 class="section-title">เกิดอะไรขึ้นกับโครงการของเรา</h2>
+  <div class="summary-grid">
+    <div class="summary-aside">
+      <h4>ประเด็นสำคัญ</h4>
+      <p>โครงการประสบปัญหาสภาพคล่องทางการเงินจากบริษัทแม่ ทำให้ค่าส่วนกลางที่ลูกบ้านจ่ายไม่ถูกนำกลับมาบริหารในโครงการตามที่ควร</p>
+      <p style="margin-top:12px">เจ้าหน้าที่สำนักงานโครงการไม่ได้รับเงินเดือนมาแล้ว 5 เดือน และพนักงานกวาดถนนกำลังจะถูกเลิกจ้าง</p>
+    </div>
+    <div class="summary-body">
+      <p>
+        นับตั้งแต่ต้นปี ๒๕๖๙ ลูกบ้านหมู่บ้านเพอร์เฟค พาร์ค ชัยพฤกษ์ สังเกตเห็น
+        การเปลี่ยนแปลงของระบบสาธารณูปโภคและการบริการส่วนกลางในทางที่ลดลงอย่างชัดเจน
+        ทั้งระบบไม้กั้นทางเข้า การตรวจตราของเจ้าหน้าที่รักษาความปลอดภัย
+        การดูแลภูมิทัศน์ การทำความสะอาด ตลอดจนการบำรุงรักษาพื้นที่ส่วนกลาง
+      </p>
+      <p>
+        เมื่อ <strong>๒๓ พฤษภาคม ๒๕๖๙</strong> ตัวแทนลูกบ้านได้เข้าหารือกับสำนักงานโครงการ
+        และได้รับการเปิดเผยว่า ค่าส่วนกลางที่ลูกบ้านชำระทุกหลังคาเรือนถูกโอนตรงไปยัง
+        <strong>บริษัท เรสซิเดนท์ นัมเบอร์ ไนน์ จำกัด (สำนักงานใหญ่)</strong> ซึ่งดูแลโครงการรวม 5 แห่ง
+        แต่สำนักงานใหญ่ "ไม่ได้โอนเงินกลับมาที่สำนักงานโครงการเนื่องจากขาดสภาพคล่อง"
+      </p>
+      <p>
+        ผลคืองบประมาณส่วนกลางของโครงการ <strong>ติดลบสะสมรวมกว่า ๒๓๖,๐๐๐ บาท</strong>
+        ภายในเพียง 4 เดือนแรก เจ้าหน้าที่ของสำนักงานโครงการเองก็ไม่ได้รับเงินเดือนมาแล้ว 5 เดือน
+        และได้แจ้งกรมแรงงานไว้แล้ว
+      </p>
+      <p>
+        ลูกบ้านจึงรวมตัวกัน <strong>จัดทำหนังสือสอบถาม</strong> ส่งถึงกรรมการผู้จัดการ
+        บริษัท พร็อพเพอร์ตี้ เพอร์เฟค จำกัด (มหาชน) เพื่อขอให้ชี้แจงเหตุผลการลดคุณภาพการบริการ
+        และเปิดเผยบัญชีรายรับ–รายจ่ายค่าส่วนกลางอย่างโปร่งใส
+        โดยกำหนดเวลาให้ตอบกลับภายใน <strong>๑๕ วัน</strong>
+        หากพ้นกำหนดจะดำเนินการตามขั้นตอนทางกฎหมายและประสานงานกับ สคบ. และหน่วยงานที่เกี่ยวข้อง
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- IMPACT -->
+<section class="content" id="impact">
+  <div class="section-eyebrow">ผลกระทบที่เห็นชัด</div>
+  <h2 class="section-title">บริการที่หายไปจากชีวิตประจำวัน</h2>
+  <div class="impact-grid">
+    <div class="impact-item fade-in">
+      <div class="impact-icon">รปภ</div>
+      <div class="impact-title">ความปลอดภัย</div>
+      <div class="impact-text">ระบบไม้กั้นขัดข้อง รปภ. ไม่ตรวจตราตามจุดประจำ</div>
+    </div>
+    <div class="impact-item fade-in d1">
+      <div class="impact-icon">🌳</div>
+      <div class="impact-title">ภูมิทัศน์</div>
+      <div class="impact-text">ตัดต้นไม้ลดเหลือเดือนละครั้ง สวนหย่อมเสื่อมสภาพ</div>
+    </div>
+    <div class="impact-item fade-in d2">
+      <div class="impact-icon">≡</div>
+      <div class="impact-title">ความสะอาด</div>
+      <div class="impact-text">พนักงานกวาดถนนใกล้ถูกเลิกจ้าง ขยะตกค้าง</div>
+    </div>
+    <div class="impact-item fade-in d3">
+      <div class="impact-icon">⚙</div>
+      <div class="impact-title">สาธารณูปโภค</div>
+      <div class="impact-text">งานซ่อมแซมล่าช้า ระบบส่วนกลางทรุดโทรม</div>
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section class="content" id="timeline">
+  <div class="section-eyebrow">ไทม์ไลน์</div>
+  <h2 class="section-title">ลำดับเหตุการณ์สำคัญ</h2>
+  <div class="timeline" id="timelineList"></div>
+</section>
+
+<!-- SITE PLAN -->
+<section class="content" id="siteplan">
+  <div class="section-eyebrow">การรวมตัวของลูกบ้าน</div>
+  <h2 class="section-title">บ้านที่ร่วมลงนามแล้ว</h2>
+
+  <div class="siteplan-wrap">
+    <div class="siteplan-meta">
+      <div class="siteplan-count">
+        ลงนามแล้ว <strong id="planSignedCount">0</strong> จาก <span id="planTotalCount">—</span> หลัง
+        <span class="of" id="planExcludedNote"></span>
+      </div>
+      <div class="siteplan-legend">
+        <span class="legend-swatch signed">ลงนาม</span>
+        <span class="legend-swatch unsigned">ยังไม่ลงนาม</span>
+        <span class="legend-swatch excluded">ไม่นับ</span>
+        <span class="legend-swatch special">อาคารส่วนกลาง</span>
+      </div>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="planProgress" style="width:0"></div>
+    </div>
+    <div class="siteplan-svg-wrap">
+      <svg class="siteplan-svg" id="sitePlanSvg" viewBox="0 0 1750 510" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <p class="siteplan-help">ลองแตะ (หรือคลิก) บ้านแต่ละหลังเพื่อดูสถานะ · ขยายภาพได้บนมือถือ</p>
+  </div>
+</section>
+
+<!-- DOCUMENTS -->
+<section class="content" id="docs">
+  <div class="section-eyebrow">เอกสาร</div>
+  <h2 class="section-title">ดาวน์โหลดเอกสารฉบับเต็ม</h2>
+  <div class="docs-grid" id="docsList"></div>
+</section>
+
+<!-- Q&A -->
+<section class="content" id="qa">
+  <div class="section-eyebrow">คำถามที่พบบ่อย</div>
+  <h2 class="section-title">ข้อสงสัยและคำตอบ</h2>
+  <div class="qa-categories" id="qaCategories"></div>
+  <div class="qa-list" id="qaList"></div>
+</section>
+
+<!-- COMMENTS -->
+<section class="content" id="comments">
+  <div class="section-eyebrow">เสียงจากลูกบ้าน</div>
+  <h2 class="section-title">ความเห็น คำถาม ข้อเสนอ</h2>
+
+  <div class="comments-form">
+    <div class="comments-form-row">
+      <input type="text" id="commentName" placeholder="ชื่อหรือนามแฝง" maxlength="40">
+      <input type="text" id="commentHouse" placeholder="บ้านเลขที่ (ไม่บังคับ)" maxlength="10">
+    </div>
+    <textarea id="commentText" placeholder="พิมพ์ข้อความของคุณที่นี่..." maxlength="500"></textarea>
+    <button class="comments-submit" id="commentSubmit">โพสต์ความเห็น</button>
+    <div class="comment-status" id="commentStatus"></div>
+  </div>
+
+  <div class="comment-list" id="commentList"></div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>
+      <h5>เกี่ยวกับเว็บนี้</h5>
+      <p>
+        เว็บไซต์รวบรวมข้อมูลและความคืบหน้าการรวมตัวของลูกบ้าน
+        หมู่บ้านเพอร์เฟค พาร์ค ชัยพฤกษ์ — จัดทำโดยทีมแอดมินกลุ่มไลน์ OpenChat
+        เพื่อความโปร่งใสและการสื่อสารระหว่างลูกบ้านในช่วงดำเนินการร้องเรียน
+      </p>
+    </div>
+    <div>
+      <h5>ติดต่อแอดมิน</h5>
+      <p>LINE OpenChat: <a id="footerLineUrl" href="#">[ลิงก์]</a></p>
+      <p>อีเมล: <span id="footerEmail">—</span></p>
+    </div>
+    <div>
+      <h5>หน่วยงานที่เกี่ยวข้อง</h5>
+      <p><a href="https://complaint.ocpb.go.th" target="_blank" rel="noopener">สคบ. (complaint.ocpb.go.th)</a></p>
+      <p><a href="https://www.dol.go.th" target="_blank" rel="noopener">กรมที่ดิน (dol.go.th)</a></p>
+      <p>สายด่วน สคบ. 1166</p>
+    </div>
+  </div>
+  <div class="footer-disclaimer">
+    เนื้อหาบนเว็บไซต์นี้รวบรวมจากเอกสารและข้อมูลของลูกบ้าน
+    เพื่อการสื่อสารระหว่างลูกบ้านเท่านั้น ไม่ใช่คำปรึกษาทางกฎหมาย
+  </div>
+</footer>
+
+<div class="house-tooltip" id="tooltip"></div>
+
+<script>
+/* ============================================================
+   ⚙️  CONFIG — แก้ตรงนี้ที่เดียวเพื่อต่อ Google Sheets
+   ------------------------------------------------------------
+   1. อัปโหลดไฟล์ perfectpark_data.xlsx ขึ้น Google Drive
+   2. เปิดด้วย Google Sheets → File → Share → Publish to web
+   3. เลือก "Entire Document" หรือเลือกทีละแท็บ → "Comma-separated values (.csv)"
+   4. คัดลอกลิงก์ที่ได้ มาวางแทน null ในแต่ละบรรทัดด้านล่าง
+   5. (เสริม) ตั้ง Apps Script สำหรับ comment — ดูคำแนะนำท้ายไฟล์
+   ============================================================ */
+const CONFIG = {
+  SHEETS: {
+    settings:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQQXFzd_NkAzc9YhQ4iRA98d3LmG5SZZ94UFJynqO5BGbCj9Js-82lPQ0XY3qjmWsrVQYb11sOONjDS/pub?gid=647992683&single=true&output=csv',
+    signed:    'https://docs.google.com/spreadsheets/d/e/2PACX-1vQQXFzd_NkAzc9YhQ4iRA98d3LmG5SZZ94UFJynqO5BGbCj9Js-82lPQ0XY3qjmWsrVQYb11sOONjDS/pub?gid=1666812042&single=true&output=csv',
+    excluded:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQQXFzd_NkAzc9YhQ4iRA98d3LmG5SZZ94UFJynqO5BGbCj9Js-82lPQ0XY3qjmWsrVQYb11sOONjDS/pub?gid=1568372032&single=true&output=csv',
+    timeline:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQQXFzd_NkAzc9YhQ4iRA98d3LmG5SZZ94UFJynqO5BGbCj9Js-82lPQ0XY3qjmWsrVQYb11sOONjDS/pub?gid=752045610&single=true&output=csv',
+    documents: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQQXFzd_NkAzc9YhQ4iRA98d3LmG5SZZ94UFJynqO5BGbCj9Js-82lPQ0XY3qjmWsrVQYb11sOONjDS/pub?gid=1202631379&single=true&output=csv',
+    qa:        'https://docs.google.com/spreadsheets/d/e/2PACX-1vQQXFzd_NkAzc9YhQ4iRA98d3LmG5SZZ94UFJynqO5BGbCj9Js-82lPQ0XY3qjmWsrVQYb11sOONjDS/pub?gid=1760216898&single=true&output=csv',
+    comments:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQQXFzd_NkAzc9YhQ4iRA98d3LmG5SZZ94UFJynqO5BGbCj9Js-82lPQ0XY3qjmWsrVQYb11sOONjDS/pub?gid=674146537&single=true&output=csv',
+  },
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz9kqPH2E0aPfFPWxUGTVwIsNNLi7QiNDR6zejAYmL1JKJJ5BpqRffMLSUFw5TqXIiw/exec', // 
+};
+
+/* ============================================================
+   📦 DEFAULTS — ใช้เมื่อ SHEETS = null
+   ============================================================ */
+const DEFAULTS = {
+  settings: {
+    letter_sent: 'FALSE',
+    letter_received_date: '2026-06-15',
+    deadline_days: '15',
+    last_updated: '30 พ.ค. 2569',
+    admin_line_url: '#',
+    admin_email: 'admin@example.com',
+    site_title: 'หมู่บ้านเพอร์เฟค พาร์ค ชัยพฤกษ์',
+  },
+  signed: [
+    { house: 1 }, { house: 4 }, { house: 5 }, { house: 12 },
+    { house: 19 }, { house: 20 }, { house: 54 }, { house: 58 },
+    { house: 78 }, { house: 82 }, { house: 94 }, { house: 106 },
+  ],
+  excluded: [
+    { house: 31, reason: 'ยังไม่สร้าง' },
+    { house: 32, reason: 'ยังไม่สร้าง' },
+    { house: 33, reason: 'ยังไม่สร้าง' },
+    { house: 34, reason: 'ยังไม่สร้าง' },
+    { house: 35, reason: 'ยังไม่สร้าง' },
+    { house: 36, reason: 'ยังไม่สร้าง' },
+    { house: 37, reason: 'ยังไม่สร้าง' },
+    { house: 89, reason: 'ยังไม่ขาย' },
+    { house: 90, reason: 'ยังไม่ขาย' },
+    { house: 91, reason: 'ยังไม่ขาย' },
+    { house: 121, reason: 'ยังไม่ขาย' },
+    { house: 130, reason: 'ยังไม่ขาย' },
+    { house: 131, reason: 'ยังไม่ขาย' },
+    { house: 132, reason: 'ยังไม่ขาย' },
+    { house: 133, reason: 'ยังไม่ขาย' },
+    { house: 134, reason: 'ยังไม่ขาย' },
+    { house: 135, reason: 'ยังไม่ขาย' },
+  ],
+  timeline: [
+    { date: 'มกราคม 2569', title: 'งบส่วนกลางเริ่มติดลบ',
+      body: 'รายรับ 86,716 บาท · ยอดติดลบ 113,363 บาท — เริ่มเห็นสัญญาณการขาดสภาพคล่อง',
+      type: 'alert', major: 'FALSE' },
+    { date: 'มี.ค. – เม.ย. 2569', title: 'งบติดลบสะสมแตะ 236,000 บาท',
+      body: 'แม้รายรับเพิ่มเป็น 195,963 และ 94,031 บาท แต่ยังไม่พอจ่ายค่าใช้จ่ายแต่ละเดือน',
+      type: 'alert', major: 'TRUE' },
+    { date: 'พฤษภาคม 2569', title: 'พนักงานกวาดถนนใกล้ถูกเลิกจ้าง',
+      body: 'จัดต้นไม้เหลือเดือนละครั้ง · ระบบไม้กั้นขัดข้อง · เจ้าหน้าที่สำนักงานไม่ได้รับเงินเดือนมา 5 เดือน',
+      type: 'alert', major: 'FALSE' },
+    { date: '23 พฤษภาคม 2569', title: 'ตัวแทนลูกบ้านเข้าหารือกับสำนักงานโครงการ',
+      body: 'ทราบว่าค่าส่วนกลางถูกโอนตรงไปสำนักงานใหญ่ และไม่ได้ถูกโอนกลับมาบริหารในโครงการ',
+      type: 'default', major: 'TRUE' },
+    { date: 'ปลายพฤษภาคม 2569', title: 'ลูกบ้านร่างหนังสือถึงกรรมการผู้จัดการ PF',
+      body: 'รวมตัวเดินล่ารายชื่อ พร้อมเตรียมยื่นหนังสือขอให้ชี้แจง',
+      type: 'signed', major: 'TRUE' },
+  ],
+  documents: [
+    { title: 'หนังสือร้องเรียนถึง บริษัท พร็อพเพอร์ตี้ เพอร์เฟค',
+      meta: 'PDF · 8 หน้า · พ.ค. 2569', type: 'PDF', url: '#' },
+    { title: 'สรุปไทม์ไลน์วิกฤตส่วนกลาง (Infographic)',
+      meta: 'PNG · พ.ค. 2569', type: 'PNG', url: '#' },
+    { title: 'บันทึกการหารือกับสำนักงานโครงการ 23 พ.ค.',
+      meta: 'PDF · 2 หน้า · 23 พ.ค. 2569', type: 'PDF', url: '#' },
+    { title: 'รายชื่อลูกบ้านที่ลงนามรับทราบ',
+      meta: 'PDF · อัปเดตทุกวัน', type: 'PDF', url: '#' },
+  ],
+  qa: [
+    {
+      question: 'เจ้าของบ้านไม่อยู่ ให้คนอื่นเซ็นแทนได้มั้ยครับ',
+      answer: 'เท่าที่สอบถามเพื่อนที่เป็นทนายความ การเรียกร้องสิทธิตามกฎหมายโดยหลักแล้ว ผู้มีสิทธิ์คือเจ้าของกรรมสิทธิ์หรือผู้ที่เป็นคู่สัญญากับบริษัท\n\nหากพ่อ แม่ หรือญาติจะดำเนินการแทน ควรมีหนังสือมอบอำนาจ, สำเนาบัตรประชาชนของผู้มอบอำนาจ, และเอกสารแสดงความเป็นเจ้าของบ้าน\n\nหากเป็นการยื่นหนังสือรวมรายชื่อเพื่อแสดงว่ามีผู้ได้รับผลกระทบจำนวนมาก เจ้าของบ้านลงชื่อเองจะมีน้ำหนักมากที่สุด ผู้อยู่อาศัยที่ไม่ใช่เจ้าของสามารถลงชื่อได้ แต่ควรระบุสถานะ เช่น "ผู้อยู่อาศัยบ้านเลขที่…" "บิดา/มารดาของเจ้าของบ้าน" หรือ "ผู้รับมอบอำนาจจากเจ้าของบ้าน" เพื่อป้องกันบริษัทโต้แย้งว่าผู้ลงชื่อไม่มีส่วนได้เสียโดยตรงครับ\n\nสรุปคือถ้าเป็นเจ้าของสิทธิ์จะดีสุดครับ แต่ถ้าลงนามแทน อาจต้องขอให้เขียนเพิ่มเรื่องสถานะ เช่นความเกี่ยวข้องกับเจ้าของสิทธิ์ หรือได้รับมอบอำนาจมา (อาจต้องทำใบมอบอำนาจซึ่งอาจรบกวนลูกบ้านอีก) เพราะระดับต่อไปที่ต้องดำเนินการหากบริษัทแม่ไม่ตอบสนอง/ดำเนินการไม่เป็นที่พอใจของลูกบ้านในภาพรวม ก็ต้องเดินเรื่องไปสำนักนายกรัฐมนตรี ที่ดูแล สคบ. ต่อไปครับ',
+      category: 'การลงนาม', order: '1', hidden: 'FALSE'
+    },
+    {
+      question: 'ลงชื่อแบบ manual หรือ e-sign คะ',
+      answer: 'Manual ครับ เผื่อกรณีใช้ในชั้นศาลหากไปถึงจุดนั้นจริง',
+      category: 'การลงนาม', order: '2', hidden: 'FALSE'
+    },
+  ],
+  comments: [
+    { name: 'คุณก้อย', house: 'บ้าน 54',
+      text: 'ขอบคุณทีมแอดมินที่จัดทำเว็บไซต์นี้นะคะ ทำให้เห็นภาพรวมชัดเจนมาก',
+      date: '30 พ.ค. 2569 · 14:32', hidden: 'FALSE' },
+    { name: 'คุณวุฒิ', house: 'บ้าน 78',
+      text: 'อยากทราบว่ามีนัดประชุมรวมลูกบ้านครั้งต่อไปเมื่อไรครับ จะได้เตรียมตัวเข้าร่วม',
+      date: '30 พ.ค. 2569 · 16:08', hidden: 'FALSE' },
+  ],
+};
+
+/* ============================================================
+   📐 SITE PLAN LAYOUT — บ้าน 1–154 จัดตามผังจริง
+   ============================================================ */
+const HOUSE_W = 38;
+const HOUSE_H = 36;
+
+function row(y, x0, nums, gap = 4) {
+  return nums.map((n, i) => ({ num: n, x: x0 + i * (HOUSE_W + gap), y }));
+}
+
+const HOUSES = [
+  ...row(30, 75, [2, 3]), ...row(30+HOUSE_H+4, 75, [1, 4]),
+  ...row(30, 195, [6]), ...row(30+HOUSE_H+4, 195, [5]),
+  ...row(30, 320, [9, 10, 11, 12, 13]),
+  ...row(30, 555, [14, 15, 16, 17, 18]),
+  ...row(30+HOUSE_H+4, 555, [61, 60, 59, 58, 57]),
+  ...row(30, 770, [19,20,21,22,23,24,25,26,27,28]),
+  ...row(30+HOUSE_H+4, 770, [56,55,54,53,52,51,50,49,48,47]),
+  ...row(30, 1295, [29,30,31,32,33,34,35,36,37]),
+  ...row(30+HOUSE_H+4, 1295, [46,45,44,43,42,41,40,39,38]),
+  ...row(150, 555, [62, 63, 64, 65, 66]),
+  ...row(230, 555, [67,68,69,70,71,72,73,74,75,76]),
+  ...row(230+HOUSE_H+4, 555, [110,109,108,107,106,105,104,103,102,101]),
+  ...row(230, 1085, [77,78,79,80,81,82,83,84,85,86,87,88]),
+  ...row(230+HOUSE_H+4, 1085, [100,99,98,97,96,95,94,93,92,91,90,89]),
+  ...row(390, 555, [111,112,113,114,115,116,117,118,119,120]),
+  ...row(390+HOUSE_H+4, 555, [154,153,152,151,150,149,148,147,146,145]),
+  ...row(390, 1085, [121,122,123,124,125,126,127,128,129,130,131,132]),
+  ...row(390+HOUSE_H+4, 1085, [144,143,142,141,140,139,138,137,136,135,134,133]),
+];
+
+const SPECIAL_BUILDINGS = [
+  { label: 'Sale\nGallery', x: 10, y: 30, w: HOUSE_W, h: HOUSE_H*2+4 },
+  { label: 'สนง.', x: 237, y: 30, w: HOUSE_W, h: HOUSE_H },
+  { label: 'สนง.', x: 237, y: 30+HOUSE_H+4, w: HOUSE_W, h: HOUSE_H },
+  { label: 'สนามส่วนกลาง', x: 1212, y: 30, w: HOUSE_W*2+4, h: HOUSE_H*2+4 },
+];
+
+const SOI_LABELS = [
+  { text: 'ซอย 3', x: 1500, y: 18 },
+  { text: 'ซอย 4', x: 670, y: 138 },
+  { text: 'ซอย 5', x: 980, y: 138 },
+  { text: 'ซอย 6', x: 1500, y: 138 },
+  { text: 'ซอย 7', x: 770, y: 338 },
+  { text: 'ซอย 8', x: 1310, y: 338 },
+  { text: 'ซอย 9', x: 770, y: 498 },
+  { text: 'ซอย 10', x: 1310, y: 498 },
+];
+
+const TOTAL_HOUSES = 154;
+
+/* ============================================================
+   📡 CSV PARSER & DATA LOADER
+   ============================================================ */
+function parseCSV(text) {
+  const rows = []; let row = []; let cell = ''; let inQuote = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuote) {
+      if (c === '"') {
+        if (text[i+1] === '"') { cell += '"'; i++; }
+        else inQuote = false;
+      } else cell += c;
+    } else {
+      if (c === '"') inQuote = true;
+      else if (c === ',') { row.push(cell); cell = ''; }
+      else if (c === '\n' || c === '\r') {
+        if (c === '\r' && text[i+1] === '\n') i++;
+        row.push(cell); rows.push(row); row = []; cell = '';
+      } else cell += c;
+    }
+  }
+  if (cell || row.length) { row.push(cell); rows.push(row); }
+  return rows;
+}
+
+function csvToObjects(text) {
+  const rows = parseCSV(text);
+  if (rows.length === 0) return [];
+  const headers = rows[0].map(h => h.trim());
+  return rows.slice(1)
+    .filter(r => r.some(c => c.trim() !== ''))
+    .map(r => {
+      const o = {};
+      headers.forEach((h, i) => { o[h] = (r[i] || '').trim(); });
+      return o;
+    });
+}
+
+function csvToSettings(text) {
+  const rows = parseCSV(text);
+  const s = {};
+  rows.slice(1).forEach(r => {
+    if (r[0] && r[0].trim()) s[r[0].trim()] = (r[1] || '').trim();
+  });
+  return s;
+}
+
+async function loadFromSheet(url, parser) {
+  try {
+    const text = await fetch(url).then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text();
+    });
+    return parser(text);
+  } catch (err) {
+    console.warn('Failed to load sheet:', err);
+    return null;
+  }
+}
+
+async function loadAllData() {
+  const data = {};
+  const tasks = [
+    ['settings', csvToSettings],
+    ['signed', csvToObjects],
+    ['excluded', csvToObjects],
+    ['timeline', csvToObjects],
+    ['documents', csvToObjects],
+    ['qa', csvToObjects],
+    ['comments', csvToObjects],
+  ];
+  await Promise.all(tasks.map(async ([key, parser]) => {
+    const url = CONFIG.SHEETS[key];
+    if (url) {
+      const result = await loadFromSheet(url, parser);
+      data[key] = result !== null ? result : DEFAULTS[key];
+    } else {
+      data[key] = DEFAULTS[key];
+    }
+  }));
+  return data;
+}
+
+/* ============================================================
+   🎨 RENDER
+   ============================================================ */
+function isTrue(v) {
+  return v === true || (typeof v === 'string' && v.trim().toUpperCase() === 'TRUE');
+}
+
+function animateCount(el, target, duration = 1400) {
+  const start = performance.now();
+  function tick(now) {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = Math.round(target * eased);
+    if (t < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, ch => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[ch]));
+}
+
+function thaiDateNow() {
+  const m = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const d = new Date();
+  return `${d.getDate()} ${m[d.getMonth()]} ${d.getFullYear() + 543} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+function renderStatusBox(settings) {
+  const box = document.getElementById('statusBox');
+  const letterSent = isTrue(settings.letter_sent);
+
+  if (!letterSent) {
+    box.className = 'status-box fade-in d3 preparing';
+    box.innerHTML = `
+      <div>
+        <div class="status-label">สถานะปัจจุบัน</div>
+        <div class="status-value">
+          กำลังรวบรวมรายชื่อลูกบ้าน
+          <small class="status-sub">
+            ยังไม่ได้ยื่นหนังสือต่อบริษัท · เมื่อรวบรวมรายชื่อครบและยื่นเรียบร้อย
+            จะเริ่มนับถอยหลัง ${settings.deadline_days || 15} วันที่ขอให้บริษัทตอบกลับ
+          </small>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // letter sent — show countdown
+  const received = new Date(settings.letter_received_date);
+  const days = parseInt(settings.deadline_days, 10) || 15;
+  const deadline = new Date(received.getTime() + days * 86400000);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diff = deadline - today;
+  const daysLeft = Math.ceil(diff / 86400000);
+
+  if (daysLeft > 0) {
+    box.className = 'status-box fade-in d3 countdown';
+    box.innerHTML = `
+      <div>
+        <div class="status-label">นับถอยหลังเส้นตาย</div>
+        <div class="status-value">
+          ${daysLeft} วัน
+          <small class="status-sub">ก่อนพ้นกำหนด ${days} วันที่ขอให้บริษัทตอบกลับ</small>
+        </div>
+      </div>
+    `;
+  } else {
+    box.className = 'status-box fade-in d3 expired';
+    box.innerHTML = `
+      <div>
+        <div class="status-label">พ้นกำหนดแล้ว</div>
+        <div class="status-value">
+          ครบ ${days} วันแล้ว
+          <small class="status-sub">บริษัทยังไม่ตอบกลับ — เตรียมยกระดับการร้องเรียน</small>
+        </div>
+      </div>
+    `;
+  }
+}
+
+function renderStats(data) {
+  const signedSet = new Set(data.signed.map(s => String(s.house).trim()));
+  const excludedSet = new Set(data.excluded.map(e => String(e.house).trim()));
+  const countable = TOTAL_HOUSES - excludedSet.size;
+  const signedCount = data.signed.filter(s =>
+    s.house && !excludedSet.has(String(s.house).trim())
+  ).length;
+  const pct = countable > 0 ? Math.round((signedCount / countable) * 100) : 0;
+
+  document.getElementById('countableHouses').textContent = countable;
+  document.getElementById('excludedNote').textContent =
+    excludedSet.size > 0
+      ? `หลังคาเรือน · ไม่นับ ${excludedSet.size} หลัง`
+      : 'หลังคาเรือน';
+
+  animateCount(document.getElementById('signedCount'), signedCount);
+  animateCount(document.getElementById('signedPercent'), pct);
+  animateCount(document.getElementById('planSignedCount'), signedCount);
+  document.getElementById('planTotalCount').textContent = countable;
+  document.getElementById('planExcludedNote').textContent =
+    excludedSet.size > 0
+      ? `(แยก ${excludedSet.size} หลังที่ยังไม่สร้าง/ขาย ออกจากการนับ)`
+      : '';
+
+  setTimeout(() => {
+    document.getElementById('signedBar').style.width = pct + '%';
+    document.getElementById('planProgress').style.width = pct + '%';
+  }, 200);
+
+  return { signedSet, excludedSet };
+}
+
+function renderTimeline(items) {
+  const wrap = document.getElementById('timelineList');
+  wrap.innerHTML = '';
+  items.forEach(item => {
+    const div = document.createElement('div');
+    const major = isTrue(item.major) ? ' major' : '';
+    div.className = 'timeline-item' + major + ' ' + (item.type || 'default');
+    div.innerHTML = `
+      <div class="timeline-date">${escapeHtml(item.date || '')}</div>
+      <div class="timeline-title">${escapeHtml(item.title || '')}</div>
+      <div class="timeline-body">${escapeHtml(item.body || '')}</div>
+    `;
+    wrap.appendChild(div);
+  });
+}
+
+function renderSitePlan(signedSet, excludedSet, excludedData) {
+  const svg = document.getElementById('sitePlanSvg');
+  svg.innerHTML = '';
+  const ns = 'http://www.w3.org/2000/svg';
+  const excludedMap = {};
+  excludedData.forEach(e => { excludedMap[String(e.house).trim()] = e.reason; });
+
+  // special buildings
+  SPECIAL_BUILDINGS.forEach(b => {
+    const rect = document.createElementNS(ns, 'rect');
+    rect.setAttribute('class', 'house-rect special');
+    rect.setAttribute('x', b.x); rect.setAttribute('y', b.y);
+    rect.setAttribute('width', b.w); rect.setAttribute('height', b.h);
+    svg.appendChild(rect);
+    const lines = b.label.split('\n');
+    lines.forEach((line, i) => {
+      const t = document.createElementNS(ns, 'text');
+      t.setAttribute('class', 'special-label');
+      t.setAttribute('x', b.x + b.w / 2);
+      const lh = 11;
+      t.setAttribute('y', b.y + b.h / 2 - (lines.length * lh)/2 + (i + 1) * lh - 2);
+      t.textContent = line;
+      svg.appendChild(t);
+    });
+  });
+
+  // houses
+  HOUSES.forEach((h, i) => {
+    const key = String(h.num);
+    const isSigned = signedSet.has(key);
+    const isExcluded = excludedSet.has(key);
+    let cls = 'house-rect';
+    if (isExcluded) cls += ' excluded';
+    else if (isSigned) cls += ' signed';
+    const rect = document.createElementNS(ns, 'rect');
+    rect.setAttribute('class', cls);
+    rect.setAttribute('x', h.x); rect.setAttribute('y', h.y);
+    rect.setAttribute('width', HOUSE_W); rect.setAttribute('height', HOUSE_H);
+    rect.setAttribute('data-house', h.num);
+    if (isExcluded) rect.setAttribute('data-reason', excludedMap[key] || '');
+    rect.style.opacity = '0';
+    rect.style.animation = `housePopIn 0.4s cubic-bezier(.3,.7,.4,1.5) ${0.3 + i * 0.005}s forwards`;
+    svg.appendChild(rect);
+    const text = document.createElementNS(ns, 'text');
+    text.setAttribute('class', 'house-label');
+    text.setAttribute('x', h.x + HOUSE_W / 2);
+    text.setAttribute('y', h.y + HOUSE_H / 2);
+    text.textContent = h.num;
+    text.style.fill = isSigned ? 'var(--paper)' : (isExcluded ? 'var(--ink-soft)' : 'var(--ink)');
+    text.style.opacity = '0';
+    text.style.animation = `housePopIn 0.4s cubic-bezier(.3,.7,.4,1.5) ${0.3 + i * 0.005 + 0.1}s forwards`;
+    svg.appendChild(text);
+  });
+
+  SOI_LABELS.forEach(s => {
+    const t = document.createElementNS(ns, 'text');
+    t.setAttribute('class', 'soi-label');
+    t.setAttribute('x', s.x); t.setAttribute('y', s.y);
+    t.textContent = s.text;
+    svg.appendChild(t);
+  });
+}
+
+function setupTooltip(signedSet, excludedSet, excludedData) {
+  const svg = document.getElementById('sitePlanSvg');
+  const tooltip = document.getElementById('tooltip');
+  const excludedMap = {};
+  excludedData.forEach(e => { excludedMap[String(e.house).trim()] = e.reason; });
+
+  function makeTip(num) {
+    const k = String(num);
+    if (excludedSet.has(k)) {
+      return `<strong>บ้านเลขที่ ${num}</strong> · ไม่นับ
+              <span class="reason">${escapeHtml(excludedMap[k] || '')}</span>`;
+    }
+    return `<strong>บ้านเลขที่ ${num}</strong> · ${signedSet.has(k) ? 'ลงนามแล้ว ✓' : 'ยังไม่ลงนาม'}`;
+  }
+
+  svg.addEventListener('mouseover', e => {
+    const t = e.target.closest('.house-rect:not(.special)');
+    if (!t) return;
+    tooltip.innerHTML = makeTip(t.getAttribute('data-house'));
+    tooltip.classList.add('visible');
+  });
+  svg.addEventListener('mousemove', e => {
+    tooltip.style.left = (e.clientX + 12) + 'px';
+    tooltip.style.top = (e.clientY - 12) + 'px';
+  });
+  svg.addEventListener('mouseout', e => {
+    if (!e.target.closest('.house-rect:not(.special)')) tooltip.classList.remove('visible');
+  });
+  svg.addEventListener('click', e => {
+    const t = e.target.closest('.house-rect:not(.special)');
+    if (!t) return;
+    const rect = t.getBoundingClientRect();
+    tooltip.innerHTML = makeTip(t.getAttribute('data-house'));
+    tooltip.style.left = (rect.left + rect.width / 2 - 70) + 'px';
+    tooltip.style.top = (rect.top - 50) + 'px';
+    tooltip.classList.add('visible');
+    clearTimeout(window._ttTimer);
+    window._ttTimer = setTimeout(() => tooltip.classList.remove('visible'), 2500);
+  });
+}
+
+function renderDocuments(docs) {
+  const wrap = document.getElementById('docsList');
+  wrap.innerHTML = '';
+  docs.forEach(d => {
+    const a = document.createElement('a');
+    a.className = 'doc-card';
+    a.href = d.url || '#';
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.innerHTML = `
+      <div class="doc-icon">${escapeHtml(d.type || 'FILE')}</div>
+      <div class="doc-info">
+        <div class="doc-title">${escapeHtml(d.title || '')}</div>
+        <div class="doc-meta">${escapeHtml(d.meta || '')}</div>
+        <span class="doc-action">ดาวน์โหลด</span>
+      </div>
+    `;
+    wrap.appendChild(a);
+  });
+}
+
+function renderQA(items) {
+  const wrapList = document.getElementById('qaList');
+  const wrapCats = document.getElementById('qaCategories');
+  wrapList.innerHTML = '';
+  wrapCats.innerHTML = '';
+
+  // filter visible + sort by order
+  const visible = items
+    .filter(q => !isTrue(q.hidden) && q.question)
+    .sort((a, b) => (parseInt(a.order, 10) || 999) - (parseInt(b.order, 10) || 999));
+
+  if (visible.length === 0) {
+    wrapList.innerHTML = `<div class="comment-empty">ยังไม่มีคำถาม</div>`;
+    return;
+  }
+
+  // build categories
+  const cats = ['ทั้งหมด', ...Array.from(new Set(visible.map(q => q.category || '').filter(Boolean)))];
+  cats.forEach((cat, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'qa-cat-btn' + (idx === 0 ? ' active' : '');
+    btn.textContent = cat;
+    btn.dataset.cat = cat;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.qa-cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterQA(cat);
+    });
+    wrapCats.appendChild(btn);
+  });
+
+  // build items
+  visible.forEach((q, i) => {
+    const item = document.createElement('div');
+    item.className = 'qa-item';
+    item.dataset.cat = q.category || '';
+
+    const question = document.createElement('button');
+    question.className = 'qa-question';
+    question.innerHTML = `
+      <span class="qa-q-text">
+        <span class="qa-q-mark">Q.</span>
+        <span>${escapeHtml(q.question)}</span>
+      </span>
+      <span class="qa-toggle">+</span>
+    `;
+    question.addEventListener('click', () => {
+      item.classList.toggle('open');
+    });
+
+    const answer = document.createElement('div');
+    answer.className = 'qa-answer';
+    const inner = document.createElement('div');
+    inner.className = 'qa-answer-inner';
+    inner.innerHTML = String(q.answer || '')
+      .split('\n\n')
+      .map(p => `<p>${escapeHtml(p).replace(/\n/g, '<br>')}</p>`)
+      .join('');
+    answer.appendChild(inner);
+
+    item.appendChild(question);
+    item.appendChild(answer);
+    wrapList.appendChild(item);
+  });
+
+  // open first one by default for discoverability
+  const firstItem = wrapList.querySelector('.qa-item');
+  if (firstItem) firstItem.classList.add('open');
+}
+
+function filterQA(cat) {
+  const items = document.querySelectorAll('.qa-item');
+  items.forEach(item => {
+    if (cat === 'ทั้งหมด' || item.dataset.cat === cat) {
+      item.style.display = '';
+    } else {
+      item.style.display = 'none';
+    }
+  });
+}
+
+function renderComments(comments) {
+  const wrap = document.getElementById('commentList');
+  wrap.innerHTML = '';
+  const visible = comments.filter(c => !isTrue(c.hidden));
+  if (visible.length === 0) {
+    wrap.innerHTML = `<div class="comment-empty">ยังไม่มีความเห็น — เป็นคนแรกที่แสดงความเห็นได้เลย</div>`;
+    return;
+  }
+  visible.slice().reverse().forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'comment';
+    div.innerHTML = `
+      <div class="comment-meta">
+        <span class="comment-author">${escapeHtml(c.name)}</span>
+        ${c.house ? `<span class="comment-house">${escapeHtml(c.house)}</span>` : ''}
+        <span class="comment-date">${escapeHtml(c.date)}</span>
+      </div>
+      <div class="comment-body">${escapeHtml(c.text).replace(/\n/g, '<br>')}</div>
+    `;
+    wrap.appendChild(div);
+  });
+}
+
+function renderFooter(settings) {
+  if (settings.admin_line_url) {
+    const a = document.getElementById('footerLineUrl');
+    a.href = settings.admin_line_url;
+    a.textContent = settings.admin_line_url === '#' ? '[ลิงก์]' : 'เข้ากลุ่ม';
+  }
+  if (settings.admin_email) {
+    document.getElementById('footerEmail').textContent = settings.admin_email;
+  }
+  if (settings.site_title) {
+    document.getElementById('mhTitle').textContent =
+      settings.site_title.replace('หมู่บ้าน', '');
+  }
+}
+
+/* ============================================================
+   📤 COMMENT SUBMISSION
+   ============================================================ */
+let currentComments = [];
+
+function setupCommentForm() {
+  const btn = document.getElementById('commentSubmit');
+  const status = document.getElementById('commentStatus');
+
+  btn.addEventListener('click', async () => {
+    const name = document.getElementById('commentName').value.trim();
+    const house = document.getElementById('commentHouse').value.trim();
+    const text = document.getElementById('commentText').value.trim();
+
+    if (!name || !text) {
+      status.className = 'comment-status error';
+      status.textContent = 'กรุณากรอกชื่อและข้อความ';
+      return;
+    }
+
+    btn.disabled = true;
+    status.className = 'comment-status';
+    status.textContent = 'กำลังส่ง...';
+
+    const newComment = {
+      name, house: house ? 'บ้าน ' + house : '', text,
+      date: thaiDateNow(), hidden: 'FALSE',
+    };
+
+    // Try sending to Apps Script
+    if (CONFIG.APPS_SCRIPT_URL) {
+      try {
+        await fetch(CONFIG.APPS_SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify(newComment),
+        });
+        status.className = 'comment-status success';
+        status.textContent = '✓ ส่งเรียบร้อย — ความเห็นจะแสดงหลังรีเฟรชหน้า (ใช้เวลา ~ 1 นาที)';
+        currentComments.push(newComment);
+        renderComments(currentComments);
+      } catch (err) {
+        status.className = 'comment-status error';
+        status.textContent = 'ส่งไม่สำเร็จ — ลองใหม่อีกครั้ง';
+      }
+    } else {
+      // No Apps Script — show locally only
+      currentComments.push(newComment);
+      renderComments(currentComments);
+      status.className = 'comment-status success';
+      status.textContent = '✓ แสดงในรอบนี้ (ยังไม่ได้ตั้งค่า Apps Script จึงไม่ถูกบันทึก)';
+    }
+
+    document.getElementById('commentName').value = '';
+    document.getElementById('commentHouse').value = '';
+    document.getElementById('commentText').value = '';
+    btn.disabled = false;
+    setTimeout(() => { status.textContent = ''; }, 6000);
+  });
+}
+
+/* ============================================================
+   🚀 MAIN
+   ============================================================ */
+(async () => {
+  const data = await loadAllData();
+
+  // Normalize signed/excluded house numbers
+  data.signed = data.signed.filter(s => s.house && String(s.house).trim());
+  data.excluded = data.excluded.filter(e => e.house && String(e.house).trim());
+
+  // Header
+  document.getElementById('lastUpdate').textContent = data.settings.last_updated || '—';
+
+  // Status box (deadline countdown or preparing)
+  renderStatusBox(data.settings);
+
+  // Stats + site plan
+  const { signedSet, excludedSet } = renderStats(data);
+  renderSitePlan(signedSet, excludedSet, data.excluded);
+  setupTooltip(signedSet, excludedSet, data.excluded);
+
+  // Sections
+  renderTimeline(data.timeline);
+  renderDocuments(data.documents);
+  renderQA(data.qa || []);
+  currentComments = [...data.comments];
+  renderComments(currentComments);
+  renderFooter(data.settings);
+
+  setupCommentForm();
+
+  // Hide loader
+  setTimeout(() => {
+    document.getElementById('loading').classList.add('hidden');
+  }, 300);
+})();
+
+/* ============================================================
+   📝 SETUP GUIDE — สำหรับแอดมิน
+   ============================================================
+
+   ─── ขั้นที่ 1: ตั้ง Google Sheet ───
+   1. อัปโหลด perfectpark_data.xlsx ขึ้น Google Drive
+   2. คลิกขวา → Open with → Google Sheets
+   3. File → Share → "Publish to web"
+   4. ตั้งค่า "Entire Document" → "Comma-separated values (.csv)" → Publish
+      (จะได้ลิงก์ base ที่ลงท้ายด้วย /pubhtml?...)
+   5. หรือเลือกทีละแท็บ ก็จะได้ URL แยกสำหรับแต่ละแท็บ
+   6. คัดลอก URL ของแต่ละแท็บ มาวางในส่วน CONFIG.SHEETS ด้านบน
+
+   วิธีหา URL แต่ละแท็บแบบเฉพาะเจาะจง:
+   - หลังจาก Publish to web เลือกแท็บที่ต้องการ → Format = CSV → Publish
+   - คัดลอกลิงก์ที่ขึ้นมา ซึ่งหน้าตาจะเป็น:
+     https://docs.google.com/spreadsheets/d/e/2PACX-XXXX/pub?gid=YYYY&single=true&output=csv
+   - gid=YYYY คือ ID ของแท็บนั้น (settings/signed/excluded/timeline/documents/comments)
+
+   ─── ขั้นที่ 2 (เสริม): ตั้ง Apps Script สำหรับรับ comment ───
+   1. เปิด Google Sheet → Extensions → Apps Script
+   2. ลบโค้ดเดิม วางโค้ดด้านล่างนี้:
+
+   --- เริ่มโค้ด Apps Script ---
+   function doPost(e) {
+     try {
+       const data = JSON.parse(e.postData.contents);
+       const ss = SpreadsheetApp.getActiveSpreadsheet();
+       const sheet = ss.getSheetByName('comments');
+       sheet.appendRow([
+         data.name || '',
+         data.house || '',
+         data.text || '',
+         data.date || new Date().toISOString(),
+         'FALSE'  // hidden
+       ]);
+       return ContentService
+         .createTextOutput(JSON.stringify({ok: true}))
+         .setMimeType(ContentService.MimeType.JSON);
+     } catch (err) {
+       return ContentService
+         .createTextOutput(JSON.stringify({ok: false, error: String(err)}))
+         .setMimeType(ContentService.MimeType.JSON);
+     }
+   }
+   --- จบโค้ด Apps Script ---
+
+   3. Save → ตั้งชื่อ project ว่า "PerfectPark Comments"
+   4. Deploy → New deployment
+      - Type: Web app
+      - Execute as: Me
+      - Who has access: Anyone
+   5. Authorize → คัดลอก Web app URL ที่ได้
+      (หน้าตาคือ https://script.google.com/macros/s/.../exec)
+   6. วาง URL นี้ใน CONFIG.APPS_SCRIPT_URL ด้านบน
+
+   ─── ขั้นที่ 3: Deploy เว็บ ───
+   - เปลี่ยนชื่อไฟล์เป็น index.html
+   - อัปโหลดขึ้น Cloudflare Pages (pages.cloudflare.com) หรือ GitHub Pages
+   - แชร์ลิงก์ใน LINE OpenChat
+
+   ─── การอัปเดตข้อมูลหลังจากนี้ ───
+   แอดมินทุกคนที่ Bank ให้สิทธิ์ Editor บน Google Sheet สามารถแก้ได้เลย
+   ไม่ต้องแก้ HTML อีก เว็บจะดึงข้อมูลใหม่ทุกครั้งที่มีคนเปิด
+   (Google ใช้เวลาประมาณ 1-2 นาทีในการ propagate ข้อมูลใหม่)
+   ============================================================ */
+</script>
+
+</body>
+</html>
