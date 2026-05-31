@@ -78,39 +78,6 @@ main, header, footer { position: relative; z-index: 2; }
 .loading-text { color: var(--ink-soft); font-size: 14px; letter-spacing: 0.05em; }
 
 /* ============================================================
-   MASTHEAD
-   ============================================================ */
-.masthead {
-  position: sticky; top: 0; z-index: 100;
-  background: rgba(244, 238, 227, 0.92);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--line);
-  padding: 12px 20px;
-}
-.masthead-inner {
-  max-width: var(--max-width); margin: 0 auto;
-  display: flex; justify-content: space-between; align-items: center; gap: 16px;
-}
-.masthead-title {
-  font-family: var(--font-display); font-weight: 700;
-  font-size: 16px; letter-spacing: 0.01em; color: var(--ink);
-}
-.masthead-title small {
-  display: block; font-family: var(--font-body); font-weight: 400;
-  font-size: 11px; color: var(--ink-faint);
-  letter-spacing: 0.04em; text-transform: uppercase; margin-top: 2px;
-}
-.masthead-update {
-  font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft);
-  display: flex; align-items: center; gap: 8px;
-}
-.dot-live {
-  width: 7px; height: 7px; background: var(--signed);
-  border-radius: 50%; animation: pulse 2s ease-in-out infinite;
-}
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-
-/* ============================================================
    HERO
    ============================================================ */
 .hero {
@@ -163,6 +130,232 @@ main, header, footer { position: relative; z-index: 2; }
   font-family: var(--font-body); font-weight: 400;
   font-size: 13px; color: var(--ink-soft);
   display: block; margin-top: 6px; line-height: 1.55;
+}
+
+/* ============================================================
+   STICKY MASTHEAD + TOC NAV
+   ============================================================ */
+.masthead {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(244, 238, 227, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.masthead-bar {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.masthead-inner {
+  max-width: var(--max-width); margin: 0 auto;
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 16px;
+}
+
+/* TOC navigation */
+.toc-nav { padding: 0; position: relative; }
+.toc-nav-inner {
+  max-width: var(--max-width); margin: 0 auto;
+  display: flex; gap: 0;
+  overflow-x: auto; overflow-y: hidden;
+  padding: 0 12px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.toc-nav-inner::-webkit-scrollbar { display: none; }
+.toc-link {
+  display: inline-block;
+  padding: 11px 12px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.toc-link:hover { color: var(--ink); }
+.toc-link.active {
+  color: var(--accent-dark);
+  border-bottom-color: var(--accent-dark);
+}
+/* Subtle gradient fades at edges to hint scrollability on mobile */
+.toc-nav::before, .toc-nav::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 24px;
+  pointer-events: none; z-index: 1;
+}
+.toc-nav::before {
+  left: 0;
+  background: linear-gradient(to right, var(--paper) 0%, transparent 100%);
+}
+.toc-nav::after {
+  right: 0;
+  background: linear-gradient(to left, var(--paper) 0%, transparent 100%);
+}
+
+/* Sections need scroll-margin to clear the sticky header */
+section[id] { scroll-margin-top: 100px; }
+
+.masthead-title {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 16px; letter-spacing: 0.01em; color: var(--ink);
+}
+.masthead-title small {
+  display: block; font-family: var(--font-body); font-weight: 400;
+  font-size: 11px; color: var(--ink-faint);
+  letter-spacing: 0.04em; text-transform: uppercase; margin-top: 2px;
+}
+.masthead-update {
+  font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft);
+  display: flex; align-items: center; gap: 8px;
+}
+.dot-live {
+  width: 7px; height: 7px; background: var(--signed);
+  border-radius: 50%; animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* ============================================================
+   SHARE SECTION
+   ============================================================ */
+.share-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+.share-btn {
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px;
+  padding: 18px 24px;
+  background: var(--paper-alt);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(.4,0,.2,1);
+  text-decoration: none;
+}
+.share-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(26,20,16,0.10);
+}
+.share-btn.line:hover {
+  background: #06C755;
+  color: #FFFFFF;
+  border-color: #06C755;
+}
+.share-btn.copy:hover {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+.share-btn-icon {
+  width: 22px; height: 22px;
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.share-btn-icon svg { width: 100%; height: 100%; }
+.share-feedback {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--signed);
+  min-height: 18px;
+  font-family: var(--font-body);
+}
+
+/* ============================================================
+   ABOUT / TRANSPARENCY SECTION
+   ============================================================ */
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+.about-block {
+  padding: 28px;
+  background: var(--paper-alt);
+  border: 1px solid var(--line-soft);
+}
+.about-block h4 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--ink);
+  margin-bottom: 14px;
+  letter-spacing: 0.01em;
+}
+.about-block p {
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+}
+.about-block p:last-child { margin-bottom: 0; }
+.about-block ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.about-block li {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+  padding-left: 18px;
+  position: relative;
+  margin-bottom: 8px;
+}
+.about-block li::before {
+  content: '·';
+  position: absolute;
+  left: 4px;
+  top: -3px;
+  font-weight: 900;
+  color: var(--accent-dark);
+  font-size: 20px;
+}
+
+/* ============================================================
+   PRIVACY NOTE
+   ============================================================ */
+.privacy-note {
+  margin-top: 20px;
+  padding: 14px 18px;
+  background: var(--paper-alt);
+  border: 1px solid var(--line-soft);
+  border-left: 3px solid var(--ink-faint);
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+.privacy-note strong {
+  color: var(--ink);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+.privacy-note ul {
+  list-style: none;
+  margin: 6px 0 0 0;
+  padding: 0;
+}
+.privacy-note li {
+  padding-left: 14px;
+  position: relative;
+  margin-bottom: 3px;
+}
+.privacy-note li::before {
+  content: '·';
+  position: absolute;
+  left: 2px;
+  font-weight: 900;
 }
 
 /* ============================================================
@@ -752,6 +945,7 @@ section.content {
   .impact-grid { grid-template-columns: 1fr 1fr; }
   .docs-grid { grid-template-columns: 1fr; }
   .footer-inner { grid-template-columns: 1fr; }
+  .about-grid { grid-template-columns: 1fr; gap: 16px; }
 }
 @media (max-width: 560px) {
   .hero { padding: 40px 16px 32px; }
@@ -762,6 +956,11 @@ section.content {
   .impact-grid { grid-template-columns: 1fr; }
   .masthead-title { font-size: 14px; }
   .masthead-title small { display: none; }
+  .masthead-update span:last-child { display: none; }
+  .toc-link { padding: 10px 10px 9px; font-size: 10px; }
+  .share-buttons { grid-template-columns: 1fr; }
+  .about-block { padding: 22px; }
+  section[id] { scroll-margin-top: 90px; }
 }
 </style>
 </head>
@@ -775,16 +974,31 @@ section.content {
 
 <!-- MASTHEAD -->
 <header class="masthead">
-  <div class="masthead-inner">
-    <div class="masthead-title">
-      <span id="mhTitle">เพอร์เฟค พาร์ค ชัยพฤกษ์</span>
-      <small>บันทึกสถานการณ์ส่วนกลาง · ฉบับลูกบ้าน</small>
-    </div>
-    <div class="masthead-update">
-      <span class="dot-live"></span>
-      <span>อัปเดตล่าสุด <span id="lastUpdate">—</span></span>
+  <div class="masthead-bar">
+    <div class="masthead-inner">
+      <div class="masthead-title">
+        <span id="mhTitle">เพอร์เฟค พาร์ค ชัยพฤกษ์</span>
+        <small>บันทึกสถานการณ์ส่วนกลาง · ฉบับลูกบ้าน</small>
+      </div>
+      <div class="masthead-update">
+        <span class="dot-live"></span>
+        <span>อัปเดตล่าสุด <span id="lastUpdate">—</span></span>
+      </div>
     </div>
   </div>
+  <nav class="toc-nav" aria-label="สารบัญ">
+    <div class="toc-nav-inner">
+      <a href="#summary"  class="toc-link" data-section="summary">สรุป</a>
+      <a href="#impact"   class="toc-link" data-section="impact">ผลกระทบ</a>
+      <a href="#timeline" class="toc-link" data-section="timeline">ไทม์ไลน์</a>
+      <a href="#siteplan" class="toc-link" data-section="siteplan">แผนผัง</a>
+      <a href="#docs"     class="toc-link" data-section="docs">เอกสาร</a>
+      <a href="#qa"       class="toc-link" data-section="qa">FAQ</a>
+      <a href="#comments" class="toc-link" data-section="comments">ความเห็น</a>
+      <a href="#share"    class="toc-link" data-section="share">แชร์</a>
+      <a href="#about"    class="toc-link" data-section="about">เกี่ยวกับเรา</a>
+    </div>
+  </nav>
 </header>
 
 <main>
@@ -977,9 +1191,86 @@ section.content {
 
     <button class="comments-submit" id="commentSubmit">โพสต์ความเห็น</button>
     <div class="comment-status" id="commentStatus"></div>
+
+    <div class="privacy-note">
+      <strong>การจัดเก็บข้อมูล</strong>
+      ความเห็นที่ส่งจะถูกบันทึกใน Google Sheets ของทีมแอดมิน ใช้สำหรับการสื่อสารระหว่างลูกบ้านเท่านั้น
+      ไม่นำไปเผยแพร่ภายนอกหรือใช้เพื่อวัตถุประสงค์เชิงพาณิชย์
+      <ul>
+        <li>ไม่จำเป็นต้องใช้ชื่อจริง สามารถใช้นามแฝงได้</li>
+        <li>บ้านเลขที่เป็น optional หากไม่สะดวกระบุ ปล่อยว่างได้</li>
+        <li>แอดมินสงวนสิทธิ์ซ่อนความเห็นที่ไม่เหมาะสมหรือนอกประเด็น</li>
+        <li>หากต้องการลบความเห็นที่ส่งไปแล้ว แจ้งแอดมินผ่าน LINE OpenChat</li>
+      </ul>
+    </div>
   </div>
 
   <div class="comment-list" id="commentList"></div>
+</section>
+
+<!-- SHARE -->
+<section class="content" id="share">
+  <div class="section-eyebrow">ช่วยกันส่งต่อ</div>
+  <h2 class="section-title">ยิ่งหลายคนรู้ ยิ่งกดดันได้มาก</h2>
+  <p style="font-size:15.5px; line-height:1.7; color:var(--ink-soft); max-width:640px; margin-bottom:24px;">
+    หากเห็นว่าข้อมูลในเว็บนี้เป็นประโยชน์ ช่วยส่งต่อให้เพื่อนบ้าน ญาติ หรือผู้ที่สนใจได้นะครับ
+    ทุกการแชร์ช่วยเพิ่มแรงกดดันให้บริษัทต้องตอบสนองอย่างเป็นรูปธรรม
+  </p>
+  <div class="share-buttons">
+    <button class="share-btn line" id="shareLineBtn" type="button">
+      <span class="share-btn-icon">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19.365 9.89c.50 0 .906.41.906.91s-.405.91-.906.91h-2.43v1.56h2.43c.50 0 .906.40.906.91 0 .50-.405.91-.906.91h-3.336c-.50 0-.91-.41-.91-.91V8.34c0-.50.41-.91.91-.91h3.336c.50 0 .906.41.906.91 0 .50-.405.91-.906.91h-2.43v1.55h2.43zm-5.74 4.20c0 .39-.25.74-.62.86-.10.04-.20.05-.30.05-.30 0-.55-.13-.71-.36L9.78 11.10v3.05c0 .50-.40.91-.91.91-.50 0-.90-.41-.90-.91V8.34c0-.39.25-.73.62-.86.10-.03.20-.05.29-.05.30 0 .55.14.72.36l2.21 3.45V8.34c0-.50.40-.91.91-.91.50 0 .90.41.90.91v5.75zm-7.39 0c0 .50-.40.91-.90.91-.50 0-.91-.41-.91-.91V8.34c0-.50.41-.91.91-.91.50 0 .90.41.90.91v5.75zm-2.49.91H.41c-.50 0-.91-.41-.91-.91V8.34c0-.50.41-.91.91-.91.50 0 .91.41.91.91v4.85h2.42c.50 0 .906.40.906.91 0 .50-.40.91-.906.91zM24 10.31C24 4.62 18.31 0 11.95 0 5.59 0 .60 4.62.60 10.31c0 5.10 4.49 9.37 10.56 10.17.41.09.97.27 1.11.62.13.32.08.81.04 1.13l-.18 1.09c-.05.32-.26 1.26 1.10.69 1.36-.58 7.31-4.30 9.97-7.36C23.18 14.69 24 12.61 24 10.31z"/>
+        </svg>
+      </span>
+      แชร์ใน LINE
+    </button>
+    <button class="share-btn copy" id="copyLinkBtn" type="button">
+      <span class="share-btn-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+      </span>
+      คัดลอกลิงก์
+    </button>
+  </div>
+  <div class="share-feedback" id="shareFeedback"></div>
+</section>
+
+<!-- ABOUT / TRANSPARENCY -->
+<section class="content" id="about">
+  <div class="section-eyebrow">เกี่ยวกับเว็บนี้</div>
+  <h2 class="section-title">ผู้จัดทำและความโปร่งใส</h2>
+  <div class="about-grid">
+    <div class="about-block">
+      <h4>ใครเป็นคนทำเว็บนี้</h4>
+      <p>
+        เว็บไซต์นี้จัดทำโดย <strong>กลุ่มแอดมินอาสาสมัครจากลูกบ้าน</strong>
+        ของหมู่บ้านเพอร์เฟค พาร์ค ชัยพฤกษ์ ที่ต้องการรวบรวมข้อมูลและสื่อสารระหว่างลูกบ้านอย่างเป็นระบบในช่วงดำเนินการร้องเรียน
+      </p>
+      <ul>
+        <li>ไม่ใช่ทนายความ / นักกฎหมาย — เป็นเพื่อนบ้านที่อยากช่วยกันแก้ปัญหา</li>
+        <li>ไม่ได้รับค่าตอบแทนใด ๆ จากการทำเว็บนี้</li>
+        <li>ไม่มีส่วนเกี่ยวข้องหรือผลประโยชน์ทับซ้อนกับบริษัทผู้พัฒนา</li>
+        <li>เนื้อหาทั้งหมดมาจากเอกสารและข้อมูลที่ลูกบ้านรวบรวมเองโดยตรง</li>
+      </ul>
+    </div>
+    <div class="about-block">
+      <h4>หลักการของเว็บนี้</h4>
+      <ul>
+        <li>เปิดเผยข้อมูลต่อสาธารณะ — ลูกบ้านทุกหลังเข้าดูได้</li>
+        <li>หลักฐานทุกชิ้นแนบ PDF ให้โหลดดูได้</li>
+        <li>คำถามที่ลูกบ้านถามบ่อยจะถูกรวบรวมในส่วน FAQ</li>
+        <li>ความเห็นถูก moderate โดยแอดมินเพื่อกัน spam และเนื้อหาไม่เหมาะสม</li>
+        <li>ข้อมูลทุกอย่างอัปเดตผ่าน Google Sheets — แอดมินหลายคนช่วยกันดูแล</li>
+      </ul>
+      <p style="margin-top:14px; font-size:13px; color:var(--ink-faint); font-style:italic;">
+        หากพบข้อมูลคลาดเคลื่อนหรือต้องการเสนอแนะ
+        แจ้งแอดมินผ่านช่องทาง LINE OpenChat ได้ตลอดเวลา
+      </p>
+    </div>
+  </div>
 </section>
 
 </main>
@@ -990,14 +1281,16 @@ section.content {
       <h5>เกี่ยวกับเว็บนี้</h5>
       <p>
         เว็บไซต์รวบรวมข้อมูลและความคืบหน้าการรวมตัวของลูกบ้าน
-        หมู่บ้านเพอร์เฟค พาร์ค ชัยพฤกษ์ — จัดทำโดยทีมแอดมินกลุ่มไลน์ OpenChat
+        หมู่บ้านเพอร์เฟค พาร์ค ชัยพฤกษ์ — จัดทำโดยทีมแอดมินอาสาสมัคร
         เพื่อความโปร่งใสและการสื่อสารระหว่างลูกบ้านในช่วงดำเนินการร้องเรียน
       </p>
     </div>
     <div>
       <h5>ติดต่อแอดมิน</h5>
-      <p>LINE OpenChat: <a id="footerLineUrl" href="#">[ลิงก์]</a></p>
-      <p>อีเมล: <span id="footerEmail">—</span></p>
+      <p><a id="footerLineUrl" href="#" target="_blank" rel="noopener">เข้ากลุ่ม LINE OpenChat →</a></p>
+      <p style="font-size:12px; color:rgba(244,238,227,0.5); margin-top:4px;">
+        ช่องทางหลักสำหรับสอบถาม / แจ้งข้อมูล / ร่วมประชุม
+      </p>
     </div>
     <div>
       <h5>หน่วยงานที่เกี่ยวข้อง</h5>
@@ -1064,8 +1357,7 @@ const DEFAULTS = {
     letter_received_date: '2026-06-15',
     deadline_days: '15',
     last_updated: '30 พ.ค. 2569',
-    admin_line_url: '#',
-    admin_email: 'admin@example.com',
+    admin_line_url: 'https://line.me/ti/g2/yfqenUgdKcC0Fb5xVMFsvb356nRMG4yvJs5CkA',
     site_title: 'หมู่บ้านเพอร์เฟค พาร์ค ชัยพฤกษ์',
     banner_url: '',  // เช่น 'banner.png' (ในโฟลเดอร์เดียวกัน) หรือ URL เต็ม
     banner_alt: 'แบนเนอร์สรุปสถานการณ์: จ่ายค่าส่วนกลางครบแต่บริการหายไป',
@@ -1642,9 +1934,17 @@ function renderBanner(settings) {
   const url = (settings.banner_url || '').trim();
   if (!url) return;  // no banner — keep text title
 
-  // Basic URL safety: only allow http(s), relative paths, or data: URIs
-  if (!/^(https?:\/\/|\.?\/?[\w\-./]+\.(png|jpg|jpeg|webp|gif|svg))$/i.test(url)) {
-    console.warn('Banner URL rejected:', url);
+  // Safety check: reject dangerous protocols and attribute-breaking characters
+  // (Note: `javascript:` doesn't execute in <img src> on modern browsers,
+  //  but we reject it as defense-in-depth.)
+  if (/^javascript:/i.test(url) || /^data:text\/html/i.test(url) || /["'<>]/.test(url)) {
+    console.warn('Banner URL rejected (unsafe pattern):', url);
+    return;
+  }
+
+  // Must end in image extension (with optional query string)
+  if (!/\.(png|jpg|jpeg|webp|gif|svg)(\?[^\s]*)?$/i.test(url)) {
+    console.warn('Banner URL rejected (not an image extension):', url);
     return;
   }
 
@@ -1684,10 +1984,6 @@ function renderFooter(settings) {
   if (settings.admin_line_url) {
     const a = document.getElementById('footerLineUrl');
     a.href = settings.admin_line_url;
-    a.textContent = settings.admin_line_url === '#' ? '[ลิงก์]' : 'เข้ากลุ่ม';
-  }
-  if (settings.admin_email) {
-    document.getElementById('footerEmail').textContent = settings.admin_email;
   }
   if (settings.site_title) {
     document.getElementById('mhTitle').textContent =
@@ -1937,12 +2233,132 @@ function setupCommentForm() {
   renderFooter(data.settings);
 
   setupCommentForm();
+  setupTOC();
+  setupShareButtons();
 
   // Hide loader
   setTimeout(() => {
     document.getElementById('loading').classList.add('hidden');
   }, 300);
 })();
+
+/* ============================================================
+   📑 TOC — highlight active section as user scrolls
+   ============================================================ */
+function setupTOC() {
+  const links = document.querySelectorAll('.toc-link');
+  const sectionIds = Array.from(links).map(a => a.getAttribute('data-section'));
+  const sections = sectionIds
+    .map(id => document.getElementById(id))
+    .filter(Boolean);
+
+  if (sections.length === 0) return;
+
+  let activeId = null;
+  function setActive(id) {
+    if (id === activeId) return;
+    activeId = id;
+    links.forEach(a => {
+      const match = a.getAttribute('data-section') === id;
+      a.classList.toggle('active', match);
+      // Auto-scroll the TOC bar so the active link is in view on mobile
+      if (match) {
+        const container = document.querySelector('.toc-nav-inner');
+        if (container) {
+          const rect = a.getBoundingClientRect();
+          const containerRect = container.getBoundingClientRect();
+          if (rect.left < containerRect.left || rect.right > containerRect.right) {
+            container.scrollTo({
+              left: a.offsetLeft - container.clientWidth / 2 + a.clientWidth / 2,
+              behavior: 'smooth',
+            });
+          }
+        }
+      }
+    });
+  }
+
+  // Use IntersectionObserver to detect which section is currently visible
+  const observer = new IntersectionObserver(
+    (entries) => {
+      // Find the intersecting section closest to the top of the viewport
+      const intersecting = entries
+        .filter(e => e.isIntersecting)
+        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+      if (intersecting.length > 0) {
+        setActive(intersecting[0].target.id);
+      }
+    },
+    {
+      // Trigger when the section enters the upper 40% of the viewport
+      rootMargin: '-100px 0px -55% 0px',
+      threshold: 0,
+    }
+  );
+
+  sections.forEach(s => observer.observe(s));
+
+  // Smooth scroll behavior is already in CSS — make sure clicks close any mobile keyboard
+  links.forEach(a => {
+    a.addEventListener('click', () => {
+      if (document.activeElement && document.activeElement.blur) {
+        document.activeElement.blur();
+      }
+    });
+  });
+}
+
+/* ============================================================
+   📤 SHARE BUTTONS — LINE share + Copy link
+   ============================================================ */
+function setupShareButtons() {
+  const lineBtn = document.getElementById('shareLineBtn');
+  const copyBtn = document.getElementById('copyLinkBtn');
+  const feedback = document.getElementById('shareFeedback');
+
+  function showFeedback(msg, isError = false) {
+    if (!feedback) return;
+    feedback.textContent = msg;
+    feedback.style.color = isError ? 'var(--alert)' : 'var(--signed)';
+    clearTimeout(window._shareFb);
+    window._shareFb = setTimeout(() => { feedback.textContent = ''; }, 3000);
+  }
+
+  if (lineBtn) {
+    lineBtn.addEventListener('click', () => {
+      const url = window.location.href;
+      const text = 'หมู่บ้านเพอร์เฟค พาร์ค ชัยพฤกษ์ — บันทึกสถานการณ์ส่วนกลาง';
+      // LINE share URL: opens a share sheet that lets user pick where to send
+      const shareUrl = 'https://social-plugins.line.me/lineit/share?url=' +
+        encodeURIComponent(url) + '&text=' + encodeURIComponent(text);
+      window.open(shareUrl, '_blank', 'noopener,noreferrer,width=600,height=600');
+    });
+  }
+
+  if (copyBtn) {
+    copyBtn.addEventListener('click', async () => {
+      const url = window.location.href;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(url);
+        } else {
+          // Fallback for older browsers / non-HTTPS contexts
+          const ta = document.createElement('textarea');
+          ta.value = url;
+          ta.style.position = 'fixed';
+          ta.style.left = '-9999px';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+        }
+        showFeedback('✓ คัดลอกลิงก์เรียบร้อย — แชร์ต่อได้เลย');
+      } catch (err) {
+        showFeedback('คัดลอกไม่สำเร็จ ลองคัดลอก URL จากแถบที่อยู่ของบราวเซอร์', true);
+      }
+    });
+  }
+}
 
 /* ============================================================
    📝 SETUP GUIDE — สำหรับแอดมิน
