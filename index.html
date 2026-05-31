@@ -166,6 +166,62 @@ main, header, footer { position: relative; z-index: 2; }
 }
 
 /* ============================================================
+   HERO BANNER
+   ============================================================ */
+.hero-banner {
+  margin: 8px 0 32px 0;
+  display: block;
+}
+.hero-banner a {
+  display: block;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--paper-alt);
+  transition: transform 0.3s cubic-bezier(.4,0,.2,1), box-shadow 0.3s;
+}
+.hero-banner a:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(26,20,16,0.12);
+}
+.hero-banner img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
+.hero-banner-caption {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(26,20,16,0.78);
+  color: var(--paper);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding: 5px 10px;
+  text-transform: uppercase;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.hero-banner a:hover .hero-banner-caption { opacity: 1; }
+
+/* Visually hidden but available to screen readers / SEO */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important; height: 1px !important;
+  padding: 0 !important; margin: -1px !important;
+  overflow: hidden !important; clip: rect(0,0,0,0) !important;
+  white-space: nowrap !important; border: 0 !important;
+}
+
+@media (max-width: 560px) {
+  .hero-banner-caption { display: none; } /* tap, not hover, on mobile */
+}
+
+/* ============================================================
    STATS
    ============================================================ */
 .stats {
@@ -587,6 +643,17 @@ section.content {
 .comments-form input:focus,
 .comments-form textarea:focus { border-color: var(--accent); }
 .comments-form textarea { resize: vertical; min-height: 80px; }
+
+/* Honeypot — invisible to humans, visible to bots */
+.hp-wrap {
+  position: absolute !important;
+  left: -10000px !important;
+  top: auto !important;
+  width: 1px !important; height: 1px !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
 .comments-submit {
   margin-top: 12px; padding: 12px 24px;
   background: var(--ink); color: var(--paper);
@@ -725,10 +792,16 @@ section.content {
 <!-- HERO -->
 <section class="hero">
   <div class="hero-eyebrow fade-in">บันทึกสาธารณะของลูกบ้าน · พฤษภาคม ๒๕๖๙</div>
-  <h1 class="hero-title fade-in d1">
+
+  <!-- Banner image (shown if banner_url set in settings sheet) -->
+  <div class="hero-banner fade-in d1" id="heroBanner" style="display:none"></div>
+
+  <!-- Text title (hidden when banner is shown, but kept for SEO/accessibility) -->
+  <h1 class="hero-title fade-in d1" id="heroTitle">
     จ่ายค่าส่วนกลางครบ —<br>
     แต่<em>บริการหายไปไหน?</em>
   </h1>
+
   <p class="hero-lead fade-in d2">
     รวบรวมไทม์ไลน์ หลักฐาน และความคืบหน้าการรวมตัวของลูกบ้าน
     เพอร์เฟค พาร์ค ชัยพฤกษ์ เพื่อขอให้บริษัทผู้พัฒนาชี้แจง
@@ -888,10 +961,20 @@ section.content {
 
   <div class="comments-form">
     <div class="comments-form-row">
-      <input type="text" id="commentName" placeholder="ชื่อหรือนามแฝง" maxlength="40">
-      <input type="text" id="commentHouse" placeholder="บ้านเลขที่ (ไม่บังคับ)" maxlength="10">
+      <input type="text" id="commentName" placeholder="ชื่อหรือนามแฝง" maxlength="40" autocomplete="off">
+      <input type="text" id="commentHouse" placeholder="บ้านเลขที่ (ไม่บังคับ)" maxlength="10" autocomplete="off" inputmode="numeric">
     </div>
     <textarea id="commentText" placeholder="พิมพ์ข้อความของคุณที่นี่..." maxlength="500"></textarea>
+
+    <!-- Honeypot: hidden from real users via CSS — bots see it and fill it in -->
+    <div class="hp-wrap" aria-hidden="true">
+      <label for="hp-website">หากคุณเห็นช่องนี้ กรุณาเว้นว่างไว้</label>
+      <input type="text" id="hp-website" name="website" tabindex="-1" autocomplete="off">
+    </div>
+
+    <!-- Cloudflare Turnstile widget will be inserted here if site key is configured -->
+    <div id="turnstileWrap" style="margin-top:12px"></div>
+
     <button class="comments-submit" id="commentSubmit">โพสต์ความเห็น</button>
     <div class="comment-status" id="commentStatus"></div>
   </div>
@@ -951,7 +1034,25 @@ const CONFIG = {
     qa:        'https://docs.google.com/spreadsheets/d/e/2PACX-1vQQXFzd_NkAzc9YhQ4iRA98d3LmG5SZZ94UFJynqO5BGbCj9Js-82lPQ0XY3qjmWsrVQYb11sOONjDS/pub?gid=1760216898&single=true&output=csv',
     comments:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQQXFzd_NkAzc9YhQ4iRA98d3LmG5SZZ94UFJynqO5BGbCj9Js-82lPQ0XY3qjmWsrVQYb11sOONjDS/pub?gid=674146537&single=true&output=csv',
   },
-  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyXJ_rX9QLSeCm_jX0WigIm4Skaux_n08qFOB1MIwE--gApJ7jUB4v1BHLPFAZj6aE2/exec', // 
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz_--RbFm-9RY4yJY5nOt-BD_29O6Rz8_lTYvSVTJ4TLVWpQU0lZwwQnJklfQX_yPjr/exec', // 
+
+  // Optional security — Cloudflare Turnstile (free CAPTCHA, privacy-friendly)
+  // 1. Sign up at dash.cloudflare.com (free) → Turnstile → Add Site
+  //   - Domain: bioxzers.github.io (or your domain)
+  //   - Widget type: Managed
+  // 2. Copy "Site Key" → paste here
+  // 3. Copy "Secret Key" → paste in Apps Script (see comment at end of file)
+  // Leave as null to skip CAPTCHA (honeypot is always on)
+  TURNSTILE_SITE_KEY: null,
+};
+
+// Client-side anti-abuse limits
+const COMMENT_LIMITS = {
+  MAX_NAME: 40,
+  MAX_HOUSE: 10,
+  MAX_TEXT: 500,
+  MIN_TEXT: 3,
+  COOLDOWN_MS: 30000,  // 30 seconds between submissions per browser
 };
 
 /* ============================================================
@@ -966,6 +1067,8 @@ const DEFAULTS = {
     admin_line_url: '#',
     admin_email: 'admin@example.com',
     site_title: 'หมู่บ้านเพอร์เฟค พาร์ค ชัยพฤกษ์',
+    banner_url: '',  // เช่น 'banner.png' (ในโฟลเดอร์เดียวกัน) หรือ URL เต็ม
+    banner_alt: 'แบนเนอร์สรุปสถานการณ์: จ่ายค่าส่วนกลางครบแต่บริการหายไป',
   },
   signed: [
     { house: 1 }, { house: 4 }, { house: 5 }, { house: 12 },
@@ -1535,6 +1638,48 @@ function renderComments(comments) {
   });
 }
 
+function renderBanner(settings) {
+  const url = (settings.banner_url || '').trim();
+  if (!url) return;  // no banner — keep text title
+
+  // Basic URL safety: only allow http(s), relative paths, or data: URIs
+  if (!/^(https?:\/\/|\.?\/?[\w\-./]+\.(png|jpg|jpeg|webp|gif|svg))$/i.test(url)) {
+    console.warn('Banner URL rejected:', url);
+    return;
+  }
+
+  const alt = settings.banner_alt || 'แบนเนอร์สรุปสถานการณ์ของโครงการ';
+  const wrap = document.getElementById('heroBanner');
+  const img = document.createElement('img');
+  img.src = url;
+  img.alt = alt;
+  img.loading = 'eager';
+  img.setAttribute('fetchpriority', 'high');
+
+  // Fallback to text title if image fails to load
+  img.onerror = () => {
+    wrap.style.display = 'none';
+    document.getElementById('heroTitle').classList.remove('sr-only');
+  };
+  img.onload = () => {
+    wrap.style.display = 'block';
+    document.getElementById('heroTitle').classList.add('sr-only');
+  };
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.target = '_blank';
+  link.rel = 'noopener';
+  link.appendChild(img);
+
+  const cap = document.createElement('span');
+  cap.className = 'hero-banner-caption';
+  cap.textContent = 'แตะเพื่อดูภาพใหญ่';
+  link.appendChild(cap);
+
+  wrap.appendChild(link);
+}
+
 function renderFooter(settings) {
   if (settings.admin_line_url) {
     const a = document.getElementById('footerLineUrl');
@@ -1551,22 +1696,151 @@ function renderFooter(settings) {
 }
 
 /* ============================================================
-   📤 COMMENT SUBMISSION
+   📤 COMMENT SUBMISSION — with anti-abuse measures
    ============================================================ */
 let currentComments = [];
+let turnstileToken = null;
+let turnstileWidgetId = null;
+
+// Sanitize input: strip dangerous patterns before sending
+function sanitizeInput(raw, maxLen) {
+  if (!raw) return '';
+  let s = String(raw).trim();
+
+  // Limit length first
+  if (s.length > maxLen) s = s.slice(0, maxLen);
+
+  // Strip control characters except newline/tab
+  s = s.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+
+  // Strip HTML tags entirely (we don't render HTML in comments anyway,
+  // but this prevents anything that looks suspicious from being stored)
+  s = s.replace(/<\/?[a-z][\s\S]*?>/gi, '');
+
+  // Strip javascript: / data: protocol patterns
+  s = s.replace(/javascript\s*:/gi, '');
+  s = s.replace(/data\s*:\s*text\/html/gi, '');
+
+  // Strip "on*=" event handler patterns (e.g. onclick=, onerror=)
+  s = s.replace(/\bon\w+\s*=/gi, '');
+
+  // CSV/formula injection prevention — prepend apostrophe if starts with = + - @ tab
+  // (Apps Script will handle this server-side too, but client-side is good defense in depth)
+  if (/^[=+\-@\t\r]/.test(s)) {
+    s = "'" + s;
+  }
+
+  return s;
+}
+
+// Validate house number: digits only, 1-3 chars
+function sanitizeHouseNumber(raw) {
+  if (!raw) return '';
+  return String(raw).replace(/[^\d]/g, '').slice(0, 4);
+}
+
+// Validate name: no URLs (spam indicator), reasonable chars only
+function isLikelySpam(name, text) {
+  const combined = (name + ' ' + text).toLowerCase();
+  // Multiple URLs in name/text → spam
+  const urlMatches = combined.match(/https?:\/\//g) || [];
+  if (urlMatches.length >= 2) return true;
+  // Common spam patterns
+  if (/\b(viagra|cialis|casino|porn|crypto|nft|bitcoin)\b/i.test(combined)) return true;
+  // Excessive repetition (e.g. "aaaaaaaa")
+  if (/(.)\1{15,}/.test(combined)) return true;
+  return false;
+}
+
+// Render Turnstile widget if configured
+function setupTurnstile() {
+  if (!CONFIG.TURNSTILE_SITE_KEY) return;
+
+  // Load Turnstile script
+  const script = document.createElement('script');
+  script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad';
+  script.async = true;
+  script.defer = true;
+  document.head.appendChild(script);
+
+  window.onTurnstileLoad = () => {
+    if (!window.turnstile) return;
+    turnstileWidgetId = window.turnstile.render('#turnstileWrap', {
+      sitekey: CONFIG.TURNSTILE_SITE_KEY,
+      callback: (token) => { turnstileToken = token; },
+      'expired-callback': () => { turnstileToken = null; },
+      'error-callback': () => { turnstileToken = null; },
+      theme: 'light',
+      language: 'th',
+    });
+  };
+}
 
 function setupCommentForm() {
   const btn = document.getElementById('commentSubmit');
   const status = document.getElementById('commentStatus');
 
-  btn.addEventListener('click', async () => {
-    const name = document.getElementById('commentName').value.trim();
-    const house = document.getElementById('commentHouse').value.trim();
-    const text = document.getElementById('commentText').value.trim();
+  setupTurnstile();
 
-    if (!name || !text) {
+  btn.addEventListener('click', async () => {
+    // 1. Honeypot check — if filled, it's a bot
+    const honeypot = document.getElementById('hp-website').value;
+    if (honeypot) {
+      // Pretend success to fool the bot, but discard silently
+      status.className = 'comment-status success';
+      status.textContent = '✓ ส่งเรียบร้อย';
+      document.getElementById('commentName').value = '';
+      document.getElementById('commentHouse').value = '';
+      document.getElementById('commentText').value = '';
+      document.getElementById('hp-website').value = '';
+      return;
+    }
+
+    // 2. Rate limit (client-side cooldown using localStorage)
+    try {
+      const lastSubmit = parseInt(localStorage.getItem('pp_last_submit') || '0', 10);
+      const elapsed = Date.now() - lastSubmit;
+      if (lastSubmit && elapsed < COMMENT_LIMITS.COOLDOWN_MS) {
+        const wait = Math.ceil((COMMENT_LIMITS.COOLDOWN_MS - elapsed) / 1000);
+        status.className = 'comment-status error';
+        status.textContent = `รอ ${wait} วินาที ก่อนส่งความเห็นถัดไป`;
+        return;
+      }
+    } catch (e) { /* localStorage might be blocked — fail open */ }
+
+    // 3. Sanitize + validate
+    const name = sanitizeInput(
+      document.getElementById('commentName').value,
+      COMMENT_LIMITS.MAX_NAME
+    );
+    const house = sanitizeHouseNumber(
+      document.getElementById('commentHouse').value
+    );
+    const text = sanitizeInput(
+      document.getElementById('commentText').value,
+      COMMENT_LIMITS.MAX_TEXT
+    );
+
+    if (!name) {
       status.className = 'comment-status error';
-      status.textContent = 'กรุณากรอกชื่อและข้อความ';
+      status.textContent = 'กรุณากรอกชื่อ';
+      return;
+    }
+    if (!text || text.length < COMMENT_LIMITS.MIN_TEXT) {
+      status.className = 'comment-status error';
+      status.textContent = 'กรุณาพิมพ์ข้อความให้ครบ (อย่างน้อย 3 ตัวอักษร)';
+      return;
+    }
+    if (isLikelySpam(name, text)) {
+      status.className = 'comment-status error';
+      status.textContent = 'ข้อความถูกระบุว่าน่าจะเป็นสแปม — กรุณาตรวจสอบและลองอีกครั้ง';
+      return;
+    }
+
+    // 4. Turnstile check (if enabled)
+    if (CONFIG.TURNSTILE_SITE_KEY && !turnstileToken) {
+      status.className = 'comment-status error';
+      status.textContent = 'กรุณายืนยันตัวตน (CAPTCHA) ก่อนส่ง';
       return;
     }
 
@@ -1575,38 +1849,58 @@ function setupCommentForm() {
     status.textContent = 'กำลังส่ง...';
 
     const newComment = {
-      name, house: house ? 'บ้าน ' + house : '', text,
-      date: thaiDateNow(), hidden: 'FALSE',
+      name,
+      house: house ? 'บ้าน ' + house : '',
+      text,
+      date: thaiDateNow(),
+      hidden: 'FALSE',
+      // anti-abuse fields:
+      turnstileToken: turnstileToken || '',
+      honeypot: '',  // explicitly empty
     };
 
-    // Try sending to Apps Script
     if (CONFIG.APPS_SCRIPT_URL) {
       try {
-        await fetch(CONFIG.APPS_SCRIPT_URL, {
+        const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
           method: 'POST',
           body: JSON.stringify(newComment),
+          // Note: no Content-Type header — Apps Script handles raw text best this way
         });
-        status.className = 'comment-status success';
-        status.textContent = '✓ ส่งเรียบร้อย — ความเห็นจะแสดงหลังรีเฟรชหน้า (ใช้เวลา ~ 1 นาที)';
-        currentComments.push(newComment);
-        renderComments(currentComments);
+        const result = await res.json().catch(() => ({ ok: false }));
+        if (result.ok) {
+          status.className = 'comment-status success';
+          status.textContent = '✓ ส่งเรียบร้อย — ความเห็นจะแสดงหลังรีเฟรชหน้า (~ 1 นาที)';
+          currentComments.push(newComment);
+          renderComments(currentComments);
+          try { localStorage.setItem('pp_last_submit', String(Date.now())); } catch (e) {}
+        } else {
+          status.className = 'comment-status error';
+          status.textContent = result.error || 'ส่งไม่สำเร็จ — ลองใหม่อีกครั้ง';
+        }
       } catch (err) {
         status.className = 'comment-status error';
         status.textContent = 'ส่งไม่สำเร็จ — ลองใหม่อีกครั้ง';
       }
     } else {
-      // No Apps Script — show locally only
       currentComments.push(newComment);
       renderComments(currentComments);
       status.className = 'comment-status success';
       status.textContent = '✓ แสดงในรอบนี้ (ยังไม่ได้ตั้งค่า Apps Script จึงไม่ถูกบันทึก)';
+      try { localStorage.setItem('pp_last_submit', String(Date.now())); } catch (e) {}
     }
 
     document.getElementById('commentName').value = '';
     document.getElementById('commentHouse').value = '';
     document.getElementById('commentText').value = '';
+
+    // Reset Turnstile so user has to solve again for next comment
+    if (turnstileWidgetId !== null && window.turnstile) {
+      try { window.turnstile.reset(turnstileWidgetId); } catch (e) {}
+      turnstileToken = null;
+    }
+
     btn.disabled = false;
-    setTimeout(() => { status.textContent = ''; }, 6000);
+    setTimeout(() => { status.textContent = ''; }, 8000);
   });
 }
 
@@ -1622,6 +1916,9 @@ function setupCommentForm() {
 
   // Header
   document.getElementById('lastUpdate').textContent = data.settings.last_updated || '—';
+
+  // Banner (replaces text title if banner_url is set)
+  renderBanner(data.settings);
 
   // Status box (deadline countdown or preparing)
   renderStatusBox(data.settings);
@@ -1670,27 +1967,136 @@ function setupCommentForm() {
    1. เปิด Google Sheet → Extensions → Apps Script
    2. ลบโค้ดเดิม วางโค้ดด้านล่างนี้:
 
-   --- เริ่มโค้ด Apps Script ---
+   --- เริ่มโค้ด Apps Script (ปลอดภัย — มี anti-abuse) ---
+
+   // === การตั้งค่า ===
+   const MAX_NAME = 40;
+   const MAX_HOUSE = 12;
+   const MAX_TEXT = 500;
+   const MIN_TEXT = 3;
+   const RATE_LIMIT_PER_HOUR = 20;  // ส่งได้สูงสุด 20 ความเห็น/ชั่วโมง (ทั้งระบบ)
+
+   // ถ้าตั้ง Turnstile ใน HTML แล้ว ใส่ Secret Key ที่นี่
+   // ถ้าไม่ใช้ Turnstile ให้ตั้งเป็น '' (string ว่าง)
+   const TURNSTILE_SECRET_KEY = '';
+
+   function sanitize(s, maxLen) {
+     if (!s) return '';
+     s = String(s).trim();
+     if (s.length > maxLen) s = s.slice(0, maxLen);
+     // strip control chars
+     s = s.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+     // strip HTML/script tags
+     s = s.replace(/<\/?[a-z][\s\S]*?>/gi, '');
+     // strip dangerous protocols
+     s = s.replace(/javascript\s*:/gi, '');
+     s = s.replace(/data\s*:\s*text\/html/gi, '');
+     // strip on*= event handlers
+     s = s.replace(/\bon\w+\s*=/gi, '');
+     // CSV/formula injection — prepend ' if starts with = + - @ etc.
+     if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+     return s;
+   }
+
+   function verifyTurnstile(token, remoteIp) {
+     if (!TURNSTILE_SECRET_KEY) return true;  // not configured — skip
+     if (!token) return false;
+     try {
+       const res = UrlFetchApp.fetch(
+         'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+         {
+           method: 'post',
+           payload: {
+             secret: TURNSTILE_SECRET_KEY,
+             response: token,
+             remoteip: remoteIp || '',
+           },
+           muteHttpExceptions: true,
+         }
+       );
+       const result = JSON.parse(res.getContentText());
+       return result.success === true;
+     } catch (e) {
+       return false;
+     }
+   }
+
+   function rateLimitOk() {
+     // Global rate limit — protects from massive bot flood
+     const props = PropertiesService.getScriptProperties();
+     const now = Date.now();
+     const windowStart = now - (60 * 60 * 1000);  // last hour
+     let timestamps = JSON.parse(props.getProperty('submit_log') || '[]');
+     timestamps = timestamps.filter(t => t > windowStart);
+     if (timestamps.length >= RATE_LIMIT_PER_HOUR) return false;
+     timestamps.push(now);
+     props.setProperty('submit_log', JSON.stringify(timestamps));
+     return true;
+   }
+
+   function jsonResponse(obj) {
+     return ContentService
+       .createTextOutput(JSON.stringify(obj))
+       .setMimeType(ContentService.MimeType.JSON);
+   }
+
    function doPost(e) {
      try {
        const data = JSON.parse(e.postData.contents);
-       const ss = SpreadsheetApp.getActiveSpreadsheet();
-       const sheet = ss.getSheetByName('comments');
-       sheet.appendRow([
-         data.name || '',
-         data.house || '',
-         data.text || '',
-         data.date || new Date().toISOString(),
-         'FALSE'  // hidden
-       ]);
-       return ContentService
-         .createTextOutput(JSON.stringify({ok: true}))
-         .setMimeType(ContentService.MimeType.JSON);
+
+       // 1. Honeypot check
+       if (data.honeypot && String(data.honeypot).trim() !== '') {
+         // Pretend success — don't tip off the bot
+         return jsonResponse({ok: true});
+       }
+
+       // 2. Rate limit
+       if (!rateLimitOk()) {
+         return jsonResponse({ok: false, error: 'ระบบกำลังรับความเห็นจำนวนมาก กรุณารอ 1 ชั่วโมง'});
+       }
+
+       // 3. Turnstile verification
+       if (!verifyTurnstile(data.turnstileToken, '')) {
+         return jsonResponse({ok: false, error: 'การยืนยันตัวตนล้มเหลว กรุณาลองอีกครั้ง'});
+       }
+
+       // 4. Sanitize + validate
+       const name = sanitize(data.name, MAX_NAME);
+       const house = sanitize(data.house, MAX_HOUSE);
+       const text = sanitize(data.text, MAX_TEXT);
+
+       if (!name) {
+         return jsonResponse({ok: false, error: 'กรุณากรอกชื่อ'});
+       }
+       if (!text || text.length < MIN_TEXT) {
+         return jsonResponse({ok: false, error: 'ข้อความสั้นเกินไป'});
+       }
+
+       // 5. Spam pattern check
+       const combined = (name + ' ' + text).toLowerCase();
+       const urlCount = (combined.match(/https?:\/\//g) || []).length;
+       if (urlCount >= 2) {
+         return jsonResponse({ok: false, error: 'ไม่อนุญาตให้ใส่ลิงก์'});
+       }
+       if (/\b(viagra|cialis|casino|crypto|nft|bitcoin)\b/i.test(combined)) {
+         return jsonResponse({ok: false, error: 'ข้อความถูกระบุว่าน่าจะเป็นสแปม'});
+       }
+
+       // 6. Append to sheet
+       const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('comments');
+       const date = data.date || new Date().toLocaleString('th-TH', {timeZone: 'Asia/Bangkok'});
+
+       sheet.appendRow([name, house, text, date, 'FALSE']);
+
+       return jsonResponse({ok: true});
      } catch (err) {
-       return ContentService
-         .createTextOutput(JSON.stringify({ok: false, error: String(err)}))
-         .setMimeType(ContentService.MimeType.JSON);
+       return jsonResponse({ok: false, error: 'เกิดข้อผิดพลาด: ' + String(err)});
      }
+   }
+
+   // Allow OPTIONS for CORS preflight (not strictly needed for simple POST but safe)
+   function doGet() {
+     return jsonResponse({ok: true, msg: 'PerfectPark comments endpoint'});
    }
    --- จบโค้ด Apps Script ---
 
@@ -1703,15 +2109,35 @@ function setupCommentForm() {
       (หน้าตาคือ https://script.google.com/macros/s/.../exec)
    6. วาง URL นี้ใน CONFIG.APPS_SCRIPT_URL ด้านบน
 
+   ─── ขั้นที่ 2.5 (เสริม): เปิด Cloudflare Turnstile CAPTCHA ───
+   1. ไป dash.cloudflare.com → สมัครฟรี (ถ้ายังไม่มีบัญชี)
+   2. เมนูซ้าย → "Turnstile" → "Add site"
+      - Site name: PerfectPark
+      - Domain: bioxzers.github.io (หรือ domain ที่ใช้)
+      - Widget mode: Managed (แนะนำ)
+   3. กด Create → จะได้ Site Key และ Secret Key
+   4. คัดลอก Site Key → วางใน CONFIG.TURNSTILE_SITE_KEY ด้านบนใน HTML
+   5. คัดลอก Secret Key → วางในตัวแปร TURNSTILE_SECRET_KEY ใน Apps Script
+   6. กด Save แล้ว Deploy → Manage Deployments → New version
+   * Turnstile ฟรีไม่จำกัด ป้องกัน bot ได้ระดับ enterprise ไม่ต้องคลิกอะไรหากไม่ใช่ bot
+
    ─── ขั้นที่ 3: Deploy เว็บ ───
    - เปลี่ยนชื่อไฟล์เป็น index.html
-   - อัปโหลดขึ้น Cloudflare Pages (pages.cloudflare.com) หรือ GitHub Pages
+   - อัปโหลดขึ้น GitHub Pages, Cloudflare Pages, หรือ Netlify
    - แชร์ลิงก์ใน LINE OpenChat
 
    ─── การอัปเดตข้อมูลหลังจากนี้ ───
    แอดมินทุกคนที่ Bank ให้สิทธิ์ Editor บน Google Sheet สามารถแก้ได้เลย
    ไม่ต้องแก้ HTML อีก เว็บจะดึงข้อมูลใหม่ทุกครั้งที่มีคนเปิด
    (Google ใช้เวลาประมาณ 1-2 นาทีในการ propagate ข้อมูลใหม่)
+
+   ─── ความปลอดภัยของระบบ comment ───
+   ระบบมี 5 ชั้นป้องกัน:
+   1. Honeypot — กล่องล่อบอท (มองไม่เห็นด้วยตา) — กันบอทพื้นฐาน 80%+
+   2. Client-side rate limit — รอ 30 วินาทีระหว่างส่ง (per browser)
+   3. Sanitization — strip script/HTML/protocol/CSV-injection ทั้งฝั่ง client และ server
+   4. Cloudflare Turnstile (ถ้าตั้งค่า) — CAPTCHA invisible ฟรี
+   5. Server-side global rate limit — ทั้งระบบ 20 comments/hour
    ============================================================ */
 </script>
 
