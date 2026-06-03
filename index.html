@@ -132,6 +132,42 @@ main, header, footer { position: relative; z-index: 2; }
   display: block; margin-top: 6px; line-height: 1.55;
 }
 
+/* Situation notice — latest update (config via Sheet) */
+.situation {
+  display: grid; grid-template-columns: auto 1fr;
+  align-items: stretch; margin-top: 16px; max-width: 100%;
+  border: 1px solid var(--line); border-left: 4px solid var(--alert);
+  background: var(--alert-soft);
+}
+.situation-flag {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; padding: 16px 18px; background: var(--alert); color: var(--paper);
+  text-align: center; min-width: 92px;
+}
+.situation-flag-dot {
+  width: 8px; height: 8px; background: var(--paper); border-radius: 50%;
+  animation: situationPulse 1.4s ease-in-out infinite;
+}
+@keyframes situationPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+.situation-flag-text {
+  font-family: var(--font-mono); font-size: 9.5px; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase; line-height: 1.3;
+}
+.situation-content { padding: 16px 22px; display: flex; flex-direction: column; justify-content: center; }
+.situation-header {
+  font-family: var(--font-display); font-weight: 700; font-size: 20px;
+  line-height: 1.25; color: var(--ink); margin-bottom: 4px;
+}
+.situation-body {
+  font-family: var(--font-body); font-size: 14px; line-height: 1.6; color: var(--ink-soft);
+}
+@media (max-width: 560px) {
+  .situation { grid-template-columns: 1fr; }
+  .situation-flag { flex-direction: row; gap: 10px; padding: 9px 16px; min-width: 0; justify-content: flex-start; }
+  .situation-content { padding: 14px 18px; }
+  .situation-header { font-size: 18px; }
+}
+
 /* ============================================================
    STICKY MASTHEAD + TOC NAV
    ============================================================ */
@@ -1024,6 +1060,18 @@ section.content {
   <div class="status-box fade-in d3" id="statusBox">
     <!-- filled by JS based on letter_sent flag -->
   </div>
+
+  <!-- Situation notice — latest update (config via Sheet) -->
+  <div class="situation fade-in d4" id="situationBox" style="display:none">
+    <div class="situation-flag">
+      <span class="situation-flag-dot"></span>
+      <span class="situation-flag-text">อัปเดต<br>ล่าสุด</span>
+    </div>
+    <div class="situation-content">
+      <div class="situation-header" id="situationHeader"></div>
+      <div class="situation-body" id="situationBody"></div>
+    </div>
+  </div>
 </section>
 
 <!-- STATS -->
@@ -1361,6 +1409,8 @@ const DEFAULTS = {
     site_title: 'หมู่บ้านเพอร์เฟค พาร์ค ชัยพฤกษ์',
     banner_url: '',  // เช่น 'banner.png' (ในโฟลเดอร์เดียวกัน) หรือ URL เต็ม
     banner_alt: 'แบนเนอร์สรุปสถานการณ์: จ่ายค่าส่วนกลางครบแต่บริการหายไป',
+    situation_header: 'กำลังรวบรวมรายชื่อลูกบ้าน',
+    situation_body: 'วันนี้เดินรวบรวมรายชื่อที่บ้านคุณเอ็กซ์ (94) หรือคุณตั้งโอ๋ (95) ก่อน 13.00 น.',
   },
   signed: [
     { house: 1 }, { house: 4 }, { house: 5 }, { house: 12 },
@@ -1597,6 +1647,24 @@ function thaiDateNow() {
   const m = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
   const d = new Date();
   return `${d.getDate()} ${m[d.getMonth()]} ${d.getFullYear() + 543} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+function renderSituation(settings) {
+  const box = document.getElementById('situationBox');
+  if (!box) return;
+  const header = (settings.situation_header || '').trim();
+  const body = (settings.situation_body || '').trim();
+
+  // Hide the whole notice if both fields are empty
+  if (!header && !body) {
+    box.style.display = 'none';
+    return;
+  }
+  document.getElementById('situationHeader').textContent = header;
+  // Allow line breaks in body (admin can use Alt+Enter in the Sheet cell)
+  document.getElementById('situationBody').innerHTML =
+    escapeHtml(body).replace(/\n/g, '<br>');
+  box.style.display = 'grid';
 }
 
 function renderStatusBox(settings) {
@@ -2218,6 +2286,9 @@ function setupCommentForm() {
 
   // Status box (deadline countdown or preparing)
   renderStatusBox(data.settings);
+
+  // Situation notice (latest update, config via Sheet)
+  renderSituation(data.settings);
 
   // Stats + site plan
   const { signedSet, excludedSet } = renderStats(data);
