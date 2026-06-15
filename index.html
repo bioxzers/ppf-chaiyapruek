@@ -743,12 +743,55 @@ section.content {
 .doc-action::after { content: '↓'; font-family: var(--font-mono); }
 
 /* ============================================================
-   PHOTO GALLERY
+   PHOTO GALLERY (multi-folder, collapsible)
    ============================================================ */
 .gallery-status {
   font-size: 14px; color: var(--ink-soft); font-style: italic;
   padding: 24px 0;
 }
+.photo-group { border-top: 1px solid var(--line); margin-bottom: 0; }
+.photo-group:last-of-type { border-bottom: 1px solid var(--line); }
+.photo-group-head {
+  width: 100%; text-align: left;
+  background: none; border: none; cursor: pointer;
+  padding: 22px 0;
+  display: flex; align-items: center; gap: 16px;
+  transition: color 0.2s;
+}
+.photo-group-head:hover { color: var(--accent-dark); }
+.photo-group-toggle {
+  flex-shrink: 0;
+  width: 30px; height: 30px;
+  border: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 18px; color: var(--ink-soft);
+  transition: all 0.3s cubic-bezier(.4,0,.2,1);
+}
+.photo-group.open .photo-group-toggle {
+  background: var(--ink); border-color: var(--ink); color: var(--paper);
+  transform: rotate(45deg);
+}
+.photo-group-titles { flex: 1; min-width: 0; }
+.photo-group-title {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 20px; color: var(--ink); line-height: 1.3;
+}
+.photo-group-desc {
+  font-family: var(--font-body); font-size: 13.5px;
+  color: var(--ink-soft); margin-top: 2px;
+}
+.photo-group-count {
+  flex-shrink: 0;
+  font-family: var(--font-mono); font-size: 12px;
+  color: var(--ink-faint); letter-spacing: 0.05em;
+}
+.photo-group-body {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(.4,0,.2,1);
+}
+.photo-group.open .photo-group-body { max-height: 6000px; }
+.photo-group-inner { padding-bottom: 28px; }
+
 .gallery {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -805,6 +848,10 @@ section.content {
   pointer-events: none;
 }
 .gallery-item:hover .gallery-item-zoom { opacity: 1; }
+.photo-group-empty {
+  font-size: 14px; color: var(--ink-faint); font-style: italic;
+  padding: 0 0 28px;
+}
 
 /* Lightbox */
 .lightbox {
@@ -860,6 +907,7 @@ section.content {
   .lightbox-nav { width: 42px; height: 42px; font-size: 20px; }
   .lightbox-prev { left: 8px; }
   .lightbox-next { right: 8px; }
+  .photo-group-title { font-size: 18px; }
 }
 @media (max-width: 420px) {
   .gallery { grid-template-columns: 1fr 1fr; }
@@ -1336,7 +1384,7 @@ section.content {
 <section class="content" id="photos">
   <div class="section-eyebrow">ภาพโครงการ</div>
   <h2 class="section-title">บันทึกภาพสถานการณ์จริง</h2>
-  <div class="gallery" id="galleryGrid"></div>
+  <div id="photoGroups"></div>
   <div class="gallery-status" id="galleryStatus"></div>
 </section>
 
@@ -1516,6 +1564,9 @@ const CONFIG = {
     documents: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQQXFzd_NkAzc9YhQ4iRA98d3LmG5SZZ94UFJynqO5BGbCj9Js-82lPQ0XY3qjmWsrVQYb11sOONjDS/pub?gid=1202631379&single=true&output=csv',
     qa:        'https://docs.google.com/spreadsheets/d/e/2PACX-1vQQXFzd_NkAzc9YhQ4iRA98d3LmG5SZZ94UFJynqO5BGbCj9Js-82lPQ0XY3qjmWsrVQYb11sOONjDS/pub?gid=1760216898&single=true&output=csv',
     comments:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQQXFzd_NkAzc9YhQ4iRA98d3LmG5SZZ94UFJynqO5BGbCj9Js-82lPQ0XY3qjmWsrVQYb11sOONjDS/pub?gid=674146537&single=true&output=csv',
+    // แท็บ photo_folders — สร้างแท็บใหม่ในชีต แล้ว Publish to web (CSV) เอา URL มาวางตรงนี้
+    // ถ้ายังไม่ได้ตั้ง ปล่อย null ไว้ จะใช้ค่าตัวอย่างใน DEFAULTS (ซึ่งจะไม่มีรูปจริง)
+    photo_folders: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQQXFzd_NkAzc9YhQ4iRA98d3LmG5SZZ94UFJynqO5BGbCj9Js-82lPQ0XY3qjmWsrVQYb11sOONjDS/pub?gid=813133&single=true&output=csv',
   },
   APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz_--RbFm-9RY4yJY5nOt-BD_29O6Rz8_lTYvSVTJ4TLVWpQU0lZwwQnJklfQX_yPjr/exec', // 
 
@@ -1629,6 +1680,13 @@ const DEFAULTS = {
     { name: 'คุณวุฒิ', house: 'บ้าน 78',
       text: 'อยากทราบว่ามีนัดประชุมรวมลูกบ้านครั้งต่อไปเมื่อไรครับ จะได้เตรียมตัวเข้าร่วม',
       date: '30 พ.ค. 2569 · 16:08', hidden: 'FALSE' },
+  ],
+  // ตัวอย่างหมวดภาพ — ของจริงตั้งค่าในแท็บ photo_folders ของชีต
+  // header=ชื่อหมวด, folder_id=Folder ID ของ Drive, order=ลำดับ,
+  // collapsed=TRUE/FALSE (เริ่มต้นพับไหม), description=คำอธิบาย (ไม่บังคับ)
+  photo_folders: [
+    { header: 'ภาพโครงการ', folder_id: '1JV6JJukA41l0SU3c37U_uxG7STODVDS8',
+      order: '1', collapsed: 'FALSE', description: '' },
   ],
 };
 
@@ -1753,6 +1811,7 @@ async function loadAllData() {
     ['documents', csvToObjects],
     ['qa', csvToObjects],
     ['comments', csvToObjects],
+    ['photo_folders', csvToObjects],
   ];
   await Promise.all(tasks.map(async ([key, parser]) => {
     const url = CONFIG.SHEETS[key];
@@ -2453,7 +2512,7 @@ function setupCommentForm() {
   setupCommentForm();
   setupTOC();
   setupShareButtons();
-  setupGallery();
+  setupGallery(data.photo_folders || []);
 
   // Hide loader
   setTimeout(() => {
@@ -2582,12 +2641,13 @@ function setupShareButtons() {
 /* ============================================================
    🖼️ PHOTO GALLERY — loads images from Google Drive via Apps Script
    ============================================================ */
+// All photos across all groups, flattened — lightbox navigates this array
 let galleryPhotos = [];
 let lightboxIndex = 0;
 
-async function setupGallery() {
+async function setupGallery(folderConfig) {
   const section = document.getElementById('photos');
-  const grid = document.getElementById('galleryGrid');
+  const container = document.getElementById('photoGroups');
   const statusEl = document.getElementById('galleryStatus');
 
   // If disabled or no Apps Script URL, hide the section entirely
@@ -2596,37 +2656,85 @@ async function setupGallery() {
     return;
   }
 
+  // Build folder list from the sheet config (filter rows that have a folder_id)
+  const folders = (folderConfig || [])
+    .filter(f => f.folder_id && String(f.folder_id).trim())
+    .sort((a, b) => (parseInt(a.order, 10) || 999) - (parseInt(b.order, 10) || 999));
+
+  if (folders.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+
   statusEl.textContent = 'กำลังโหลดภาพ...';
+  container.innerHTML = '';
+  galleryPhotos = [];
 
-  try {
-    const url = CONFIG.APPS_SCRIPT_URL + '?action=photos';
-    const res = await fetch(url);
-    const data = await res.json();
+  setupLightbox();
 
-    if (!data.ok || !Array.isArray(data.photos) || data.photos.length === 0) {
-      // No photos yet — hide the section so it doesn't look broken
-      section.style.display = 'none';
-      return;
+  // Fetch all folders in parallel
+  const results = await Promise.all(folders.map(async (folder) => {
+    try {
+      const url = CONFIG.APPS_SCRIPT_URL + '?action=photos&folder=' +
+        encodeURIComponent(String(folder.folder_id).trim());
+      const res = await fetch(url);
+      const data = await res.json();
+      return { folder, photos: (data.ok && Array.isArray(data.photos)) ? data.photos : [] };
+    } catch (err) {
+      console.warn('Folder load failed:', folder.header, err);
+      return { folder, photos: [] };
     }
+  }));
 
-    galleryPhotos = data.photos;
-    grid.innerHTML = '';
-    statusEl.textContent = '';
+  statusEl.textContent = '';
+  let totalPhotos = 0;
 
-    galleryPhotos.forEach((photo, i) => {
+  results.forEach((result) => {
+    const { folder, photos } = result;
+    // Skip groups that have no photos at all
+    if (photos.length === 0) return;
+    totalPhotos += photos.length;
+
+    // Record the starting index of this group within the flattened array
+    const startIndex = galleryPhotos.length;
+    photos.forEach(p => galleryPhotos.push(p));
+
+    const group = document.createElement('div');
+    group.className = 'photo-group' + (isTrue(folder.collapsed) ? '' : ' open');
+
+    // Header (clickable to collapse/expand)
+    const head = document.createElement('button');
+    head.className = 'photo-group-head';
+    head.type = 'button';
+    head.innerHTML = `
+      <span class="photo-group-toggle">+</span>
+      <span class="photo-group-titles">
+        <span class="photo-group-title">${escapeHtml(folder.header || 'ภาพ')}</span>
+        ${folder.description ? `<span class="photo-group-desc">${escapeHtml(folder.description)}</span>` : ''}
+      </span>
+      <span class="photo-group-count">${photos.length} ภาพ</span>
+    `;
+    head.addEventListener('click', () => group.classList.toggle('open'));
+
+    // Body (the grid)
+    const body = document.createElement('div');
+    body.className = 'photo-group-body';
+    const inner = document.createElement('div');
+    inner.className = 'photo-group-inner';
+    const grid = document.createElement('div');
+    grid.className = 'gallery';
+
+    photos.forEach((photo, j) => {
+      const flatIndex = startIndex + j;
       const item = document.createElement('div');
       item.className = 'gallery-item loading';
-      item.dataset.index = i;
 
       const img = document.createElement('img');
       img.loading = 'lazy';
-      img.alt = photo.name || ('ภาพโครงการ ' + (i + 1));
+      img.alt = photo.name || ('ภาพโครงการ ' + (flatIndex + 1));
       img.src = photo.thumb || photo.full || photo.url;
       img.onload = () => item.classList.remove('loading');
-      img.onerror = () => {
-        // If thumbnail fails, hide this single item gracefully
-        item.style.display = 'none';
-      };
+      img.onerror = () => { item.style.display = 'none'; };
 
       const zoom = document.createElement('div');
       zoom.className = 'gallery-item-zoom';
@@ -2642,14 +2750,19 @@ async function setupGallery() {
         item.appendChild(cap);
       }
 
-      item.addEventListener('click', () => openLightbox(i));
+      item.addEventListener('click', () => openLightbox(flatIndex));
       grid.appendChild(item);
     });
 
-    setupLightbox();
-  } catch (err) {
-    console.warn('Gallery load failed:', err);
-    // Hide section on error rather than showing a broken state
+    inner.appendChild(grid);
+    body.appendChild(inner);
+    group.appendChild(head);
+    group.appendChild(body);
+    container.appendChild(group);
+  });
+
+  // If every folder came back empty, hide the whole section
+  if (totalPhotos === 0) {
     section.style.display = 'none';
   }
 }
@@ -2703,202 +2816,6 @@ function updateLightbox() {
   document.getElementById('lbCounter').textContent =
     (lightboxIndex + 1) + ' / ' + galleryPhotos.length;
 }
-
-/* ============================================================
-   📝 SETUP GUIDE — สำหรับแอดมิน
-   ============================================================
-
-   ─── ขั้นที่ 1: ตั้ง Google Sheet ───
-   1. อัปโหลด perfectpark_data.xlsx ขึ้น Google Drive
-   2. คลิกขวา → Open with → Google Sheets
-   3. File → Share → "Publish to web"
-   4. ตั้งค่า "Entire Document" → "Comma-separated values (.csv)" → Publish
-      (จะได้ลิงก์ base ที่ลงท้ายด้วย /pubhtml?...)
-   5. หรือเลือกทีละแท็บ ก็จะได้ URL แยกสำหรับแต่ละแท็บ
-   6. คัดลอก URL ของแต่ละแท็บ มาวางในส่วน CONFIG.SHEETS ด้านบน
-
-   วิธีหา URL แต่ละแท็บแบบเฉพาะเจาะจง:
-   - หลังจาก Publish to web เลือกแท็บที่ต้องการ → Format = CSV → Publish
-   - คัดลอกลิงก์ที่ขึ้นมา ซึ่งหน้าตาจะเป็น:
-     https://docs.google.com/spreadsheets/d/e/2PACX-XXXX/pub?gid=YYYY&single=true&output=csv
-   - gid=YYYY คือ ID ของแท็บนั้น (settings/signed/excluded/timeline/documents/comments)
-
-   ─── ขั้นที่ 2 (เสริม): ตั้ง Apps Script สำหรับรับ comment ───
-   1. เปิด Google Sheet → Extensions → Apps Script
-   2. ลบโค้ดเดิม วางโค้ดด้านล่างนี้:
-
-   --- เริ่มโค้ด Apps Script (ปลอดภัย — มี anti-abuse) ---
-
-   // === การตั้งค่า ===
-   const MAX_NAME = 40;
-   const MAX_HOUSE = 12;
-   const MAX_TEXT = 500;
-   const MIN_TEXT = 3;
-   const RATE_LIMIT_PER_HOUR = 20;  // ส่งได้สูงสุด 20 ความเห็น/ชั่วโมง (ทั้งระบบ)
-
-   // ถ้าตั้ง Turnstile ใน HTML แล้ว ใส่ Secret Key ที่นี่
-   // ถ้าไม่ใช้ Turnstile ให้ตั้งเป็น '' (string ว่าง)
-   const TURNSTILE_SECRET_KEY = '';
-
-   function sanitize(s, maxLen) {
-     if (!s) return '';
-     s = String(s).trim();
-     if (s.length > maxLen) s = s.slice(0, maxLen);
-     // strip control chars
-     s = s.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
-     // strip HTML/script tags
-     s = s.replace(/<\/?[a-z][\s\S]*?>/gi, '');
-     // strip dangerous protocols
-     s = s.replace(/javascript\s*:/gi, '');
-     s = s.replace(/data\s*:\s*text\/html/gi, '');
-     // strip on*= event handlers
-     s = s.replace(/\bon\w+\s*=/gi, '');
-     // CSV/formula injection — prepend ' if starts with = + - @ etc.
-     if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
-     return s;
-   }
-
-   function verifyTurnstile(token, remoteIp) {
-     if (!TURNSTILE_SECRET_KEY) return true;  // not configured — skip
-     if (!token) return false;
-     try {
-       const res = UrlFetchApp.fetch(
-         'https://challenges.cloudflare.com/turnstile/v0/siteverify',
-         {
-           method: 'post',
-           payload: {
-             secret: TURNSTILE_SECRET_KEY,
-             response: token,
-             remoteip: remoteIp || '',
-           },
-           muteHttpExceptions: true,
-         }
-       );
-       const result = JSON.parse(res.getContentText());
-       return result.success === true;
-     } catch (e) {
-       return false;
-     }
-   }
-
-   function rateLimitOk() {
-     // Global rate limit — protects from massive bot flood
-     const props = PropertiesService.getScriptProperties();
-     const now = Date.now();
-     const windowStart = now - (60 * 60 * 1000);  // last hour
-     let timestamps = JSON.parse(props.getProperty('submit_log') || '[]');
-     timestamps = timestamps.filter(t => t > windowStart);
-     if (timestamps.length >= RATE_LIMIT_PER_HOUR) return false;
-     timestamps.push(now);
-     props.setProperty('submit_log', JSON.stringify(timestamps));
-     return true;
-   }
-
-   function jsonResponse(obj) {
-     return ContentService
-       .createTextOutput(JSON.stringify(obj))
-       .setMimeType(ContentService.MimeType.JSON);
-   }
-
-   function doPost(e) {
-     try {
-       const data = JSON.parse(e.postData.contents);
-
-       // 1. Honeypot check
-       if (data.honeypot && String(data.honeypot).trim() !== '') {
-         // Pretend success — don't tip off the bot
-         return jsonResponse({ok: true});
-       }
-
-       // 2. Rate limit
-       if (!rateLimitOk()) {
-         return jsonResponse({ok: false, error: 'ระบบกำลังรับความเห็นจำนวนมาก กรุณารอ 1 ชั่วโมง'});
-       }
-
-       // 3. Turnstile verification
-       if (!verifyTurnstile(data.turnstileToken, '')) {
-         return jsonResponse({ok: false, error: 'การยืนยันตัวตนล้มเหลว กรุณาลองอีกครั้ง'});
-       }
-
-       // 4. Sanitize + validate
-       const name = sanitize(data.name, MAX_NAME);
-       const house = sanitize(data.house, MAX_HOUSE);
-       const text = sanitize(data.text, MAX_TEXT);
-
-       if (!name) {
-         return jsonResponse({ok: false, error: 'กรุณากรอกชื่อ'});
-       }
-       if (!text || text.length < MIN_TEXT) {
-         return jsonResponse({ok: false, error: 'ข้อความสั้นเกินไป'});
-       }
-
-       // 5. Spam pattern check
-       const combined = (name + ' ' + text).toLowerCase();
-       const urlCount = (combined.match(/https?:\/\//g) || []).length;
-       if (urlCount >= 2) {
-         return jsonResponse({ok: false, error: 'ไม่อนุญาตให้ใส่ลิงก์'});
-       }
-       if (/\b(viagra|cialis|casino|crypto|nft|bitcoin)\b/i.test(combined)) {
-         return jsonResponse({ok: false, error: 'ข้อความถูกระบุว่าน่าจะเป็นสแปม'});
-       }
-
-       // 6. Append to sheet
-       const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('comments');
-       const date = data.date || new Date().toLocaleString('th-TH', {timeZone: 'Asia/Bangkok'});
-
-       sheet.appendRow([name, house, text, date, 'FALSE']);
-
-       return jsonResponse({ok: true});
-     } catch (err) {
-       return jsonResponse({ok: false, error: 'เกิดข้อผิดพลาด: ' + String(err)});
-     }
-   }
-
-   // Allow OPTIONS for CORS preflight (not strictly needed for simple POST but safe)
-   function doGet() {
-     return jsonResponse({ok: true, msg: 'PerfectPark comments endpoint'});
-   }
-   --- จบโค้ด Apps Script ---
-
-   3. Save → ตั้งชื่อ project ว่า "PerfectPark Comments"
-   4. Deploy → New deployment
-      - Type: Web app
-      - Execute as: Me
-      - Who has access: Anyone
-   5. Authorize → คัดลอก Web app URL ที่ได้
-      (หน้าตาคือ https://script.google.com/macros/s/.../exec)
-   6. วาง URL นี้ใน CONFIG.APPS_SCRIPT_URL ด้านบน
-
-   ─── ขั้นที่ 2.5 (เสริม): เปิด Cloudflare Turnstile CAPTCHA ───
-   1. ไป dash.cloudflare.com → สมัครฟรี (ถ้ายังไม่มีบัญชี)
-   2. เมนูซ้าย → "Turnstile" → "Add site"
-      - Site name: PerfectPark
-      - Domain: bioxzers.github.io (หรือ domain ที่ใช้)
-      - Widget mode: Managed (แนะนำ)
-   3. กด Create → จะได้ Site Key และ Secret Key
-   4. คัดลอก Site Key → วางใน CONFIG.TURNSTILE_SITE_KEY ด้านบนใน HTML
-   5. คัดลอก Secret Key → วางในตัวแปร TURNSTILE_SECRET_KEY ใน Apps Script
-   6. กด Save แล้ว Deploy → Manage Deployments → New version
-   * Turnstile ฟรีไม่จำกัด ป้องกัน bot ได้ระดับ enterprise ไม่ต้องคลิกอะไรหากไม่ใช่ bot
-
-   ─── ขั้นที่ 3: Deploy เว็บ ───
-   - เปลี่ยนชื่อไฟล์เป็น index.html
-   - อัปโหลดขึ้น GitHub Pages, Cloudflare Pages, หรือ Netlify
-   - แชร์ลิงก์ใน LINE OpenChat
-
-   ─── การอัปเดตข้อมูลหลังจากนี้ ───
-   แอดมินทุกคนที่ Bank ให้สิทธิ์ Editor บน Google Sheet สามารถแก้ได้เลย
-   ไม่ต้องแก้ HTML อีก เว็บจะดึงข้อมูลใหม่ทุกครั้งที่มีคนเปิด
-   (Google ใช้เวลาประมาณ 1-2 นาทีในการ propagate ข้อมูลใหม่)
-
-   ─── ความปลอดภัยของระบบ comment ───
-   ระบบมี 5 ชั้นป้องกัน:
-   1. Honeypot — กล่องล่อบอท (มองไม่เห็นด้วยตา) — กันบอทพื้นฐาน 80%+
-   2. Client-side rate limit — รอ 30 วินาทีระหว่างส่ง (per browser)
-   3. Sanitization — strip script/HTML/protocol/CSV-injection ทั้งฝั่ง client และ server
-   4. Cloudflare Turnstile (ถ้าตั้งค่า) — CAPTCHA invisible ฟรี
-   5. Server-side global rate limit — ทั้งระบบ 20 comments/hour
-   ============================================================ */
 </script>
 
 </body>
